@@ -1,10 +1,11 @@
-from typing import Annotated
-from annotated_types import Ge, Le
+from annotated_types import Ge
+from annotated_types import Le
 from datetime import datetime
 from pydantic import BaseModel
 from pydantic import EmailStr
 from pydantic import UUID4
 from pydantic_extra_types.phone_numbers import PhoneNumber
+from typing import Annotated
 
 
 AllowedAcademicLevel = Annotated[int, Ge(6), Le(8)]

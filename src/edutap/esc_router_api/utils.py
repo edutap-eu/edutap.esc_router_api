@@ -5,7 +5,7 @@ class ESCN_Factory_Exception(Exception):
     pass
 
 
-def generate_ESCN(pic: str, prefix: int = 1) -> uuid.uuid1:
+def generate_ESCN(pic: str, prefix: int = 1) -> uuid.UUID:
     if len(pic) == 9 and pic.isdigit():
         node: int = int(f"{prefix:03d}{pic}", 16)
         return uuid.uuid1(node=node)

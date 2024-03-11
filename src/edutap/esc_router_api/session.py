@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
-from requests.adapters import HTTPAdapter
 from requests import Session
+from requests.adapters import HTTPAdapter
 
 import json
 import os

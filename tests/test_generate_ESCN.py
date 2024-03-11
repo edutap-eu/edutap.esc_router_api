@@ -6,7 +6,7 @@ import uuid
 
 
 def test_generate_ESCN():
-    PIC = "999978433"
+    PIC = "123456789"
 
     escn = generate_ESCN(pic=PIC)
     assert isinstance(escn, uuid.UUID)
@@ -16,7 +16,7 @@ def test_generate_ESCN():
 
 
 def test_generate_ESCN_with_prefix():
-    PIC = "999978433"
+    PIC = "123456789"
     PREFIX = 3
 
     escn = generate_ESCN(pic=PIC, prefix=PREFIX)
