@@ -1,6 +1,9 @@
 from dotenv import load_dotenv
+from pydantic_settings import BaseSettings
+from pydantic_settings import SettingsConfigDict
 from requests import Session
 from requests.adapters import HTTPAdapter
+from typing import Literal
 
 import json
 import os
@@ -11,8 +14,8 @@ load_dotenv()
 
 _THREADLOCAL = threading.local()
 
-# BASE_URL = "https://api-sandbox.europeanstudentcard.eu/v1"  # Sandbox
-BASE_URL = "https://api.europeanstudentcard.eu/v1"  # Production --> for real data only
+# BASE_URL = "https://api-sandbox.europeanstudentcard.eu/"  # Sandbox
+BASE_URL = "https://api.europeanstudentcard.eu/"  # Production --> for real data only
 
 
 class HTTPRecorder(HTTPAdapter):
@@ -38,6 +41,27 @@ class HTTPRecorder(HTTPAdapter):
         with open(filename.replace("REQUEST", "RESPONSE"), "w") as fp:
             json.dump(resp_record, fp, indent=4)
         return response
+
+
+class Settings(BaseSettings):
+    """Settings for ESC Router API.
+
+
+    For more on how these settings work follow https://docs.pydantic.dev/latest/concepts/pydantic_settings/
+
+    Any default can be overridden by setting the corresponding environment variable prefixed with `EDUTAP_WALLET_GOOGLE_`.
+    If a `.env` file is present in the root directory of the project, the environment variables will be loaded from there.
+    """
+
+    model_config = SettingsConfigDict(
+        env_prefix="ESC_",
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=False,
+        extra="ignore",
+    )
+
+    environment: Literal["development", "production"] = "development"
 
 
 class SessionManager:

@@ -23,9 +23,10 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "pydantic[email,dotenv]>=2.0",
+    "pydantic[email]>=2.0",
     "pydantic_extra_types",
-    "python-dotenv",
+    "pydantic-settings",
+    "phonenumbers",
     "httpx",
   ]
 
@@ -67,7 +68,7 @@ profile = "plone"
 
 [tool.black]
 target-version = ["py310"]
-include = "src"
+include = "src,tests"
 
 [tool.codespell]
 ignore-words-list = "discreet,"

@@ -1,24 +1,50 @@
 from .models import Card
 from .models import Student
 from .session import session_manager
-from pydantic import UUID4
+from .utils import generate_ESCN
+from .utils import openapi_method
+from typing import Literal
 
 import uuid
 
 
-def generate_ESCN(prefix: int, picInstitutionCode, int) -> UUID4:
-    return uuid.uuid4()
+# --- Person -----------------------------------------------------------------
 
 
-def add_student(
-    data: dict | Student,
+@openapi_method("GET", "/persons")
+def list_persons(offset: int = 0, limit: int = 0) -> list | None:
+    session = session_manager.session
+    url = f"{session.base_url}/persons"
+    if limit == 0:
+        # read all entries
+        pass
+    response = session.get(url=url, params={offset: offset, limit: limit})
+    if response.status_code == 500:  # Internal Server Error --> Server Issue
+        raise Exception(response)
+    elif (
+        response.status_code == 401
+    ):  # Unauthorized --> Unauthorized PIC with this Keys
+        raise Exception(response)
+    elif response.status_code == 400:  # Bad Request --> Malformed request
+        raise Exception(response)
+
+    elif response.status_code == 200:  # OK --> List of students
+        location = response.headers.get("Location")
+        print(location)
+
+    return None
+
+
+@openapi_method("POST", "/persons")
+def add_person(
+    data: Person | dict,
     europeanStudentIdentifier: str,
 ) -> dict | None:
     if isinstance(data, dict):
         data = Student.model_validate(data)
 
     session = session_manager.session
-    url = f"{session.base_url}/students"
+    url = f"{session.base_url}/persons"
     response = session.post(url=url, data=data.model_dump_json().encode("utf-8"))
 
     if response.status_code == 500:  # Internal Server Error --> Server Issue
@@ -47,42 +73,22 @@ def add_student(
     return None
 
 
-def list_students(offset: int = 0, limit: int = 0) -> list | None:
-    session = session_manager.session
-    url = f"{session.base_url}/students"
-    if limit == 0:
-        # read all entries
-        pass
-    response = session.get(url=url, params={offset: offset, limit: limit})
-    if response.status_code == 500:  # Internal Server Error --> Server Issue
-        raise Exception(response)
-    elif (
-        response.status_code == 401
-    ):  # Unauthorized --> Unauthorized PIC with this Keys
-        raise Exception(response)
-    elif response.status_code == 400:  # Bad Request --> Malformed request
-        raise Exception(response)
-
-    elif response.status_code == 200:  # OK --> List of students
-        location = response.headers.get("Location")
-        print(location)
-
+@openapi_method("GET", "/persons/{esi}")
+def get_student(europeanStudentIdentifier: uuid.UUID) -> Student | None:
     return None
 
 
-def get_student(europeanStudentIdentifier: UUID4) -> Student | None:
-    return None
-
-
+@openapi_method("PUT", "/persons/{esi}")
 def update_student(
-    europeanStudentIdentifier: UUID4, data: dict | Student
+    europeanStudentIdentifier: uuid.UUID, data: dict | Student
 ) -> Student | None:
     return None
 
 
-def delete_student(europeanStudentIdentifier: UUID4) -> bool:
+@openapi_method("DELETE", "/persons/{esi}")
+def delete_student(europeanStudentIdentifier: uuid.UUID) -> bool:
     return False
 
 
-def add_card(europeanStudentIdentifier: UUID4, data: dict | Card) -> Card | None:
+def add_card(europeanStudentIdentifier: uuid.UUID, data: dict | Card) -> Card | None:
     return None
