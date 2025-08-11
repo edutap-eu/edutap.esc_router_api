@@ -43,6 +43,7 @@ var/
 /reports/
 /sources/
 /venv/
+/.venv/
 .installed.txt
 
 /.env
