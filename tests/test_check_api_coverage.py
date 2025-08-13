@@ -1,11 +1,12 @@
 from edutap.esc_router_api import api
-from typing import Dict, Any
+from typing import Any
+from typing import Dict
 
-import json
-import pytest
-import pathlib
 import httpx
 import inspect
+import json
+import pathlib
+import pytest
 
 
 # URL zur OpenAPI-Spezifikation
@@ -39,7 +40,6 @@ def test_get_spec():
     assert get_openapi_spec()
 
 
-
 @pytest.fixture(scope="session")
 def load_spec():
     data: Dict[str, Any] = {}
@@ -47,8 +47,9 @@ def load_spec():
         data = json.load(file)
     return data
 
+
 def get_openapi_operations(spec):
-    """Extrahiert alle (method, path) aus der OpenAPI-Spezifikation."""
+    """Extract all (method, path) from the OpenAPI specification."""
     operations = set()
     for path, methods in spec.get("paths", {}).items():
         for method in methods:
@@ -59,17 +60,23 @@ def get_openapi_operations(spec):
         print(f" * {method}: {path}")
     return operations
 
+
 def get_implemented_operations(api_module):
-    """Findet alle Funktionen im API-Modul, die mit @openapi_method dekoriert sind."""
+    """Find all functions in the API module that are decorated with @openapi_method."""
     operations = set()
     for _, obj in inspect.getmembers(api_module):
-        if callable(obj) and hasattr(obj, "__http_method__") and hasattr(obj, "__openapi_path__"):
+        if (
+            callable(obj)
+            and hasattr(obj, "__http_method__")
+            and hasattr(obj, "__openapi_path__")
+        ):
             operations.add((obj.__http_method__, obj.__openapi_path__, obj.__name__))
 
     print("Our known endpoints:")
     for method, path, name in operations:
         print(f" * {method}: {path} - {name}")
     return operations
+
 
 def test_all_openapi_operations_implemented(load_spec):
     """Prüft, ob alle API-Endpunkte implementiert sind."""
@@ -81,4 +88,6 @@ def test_all_openapi_operations_implemented(load_spec):
 
     assert not missing, f"Fehlende API-Methoden: {sorted(missing)}"
     if extra:
-        print(f"Warnung: Nicht in OpenAPI definierte Methoden gefunden: {sorted(extra)}")
+        print(
+            f"Warnung: Nicht in OpenAPI definierte Methoden gefunden: {sorted(extra)}"
+        )

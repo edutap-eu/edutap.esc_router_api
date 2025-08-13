@@ -74,7 +74,7 @@ def add_person(
 
 
 @openapi_method("GET", "/persons/{esi}")
-def get_student(europeanStudentIdentifier: uuid.UUID) -> Student | None:
+def get_person(europeanStudentIdentifier: uuid.UUID) -> Student | None:
     return None
 
 
