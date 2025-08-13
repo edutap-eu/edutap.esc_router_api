@@ -39,6 +39,7 @@ Documentation = "https://docs.edutap.eu/packages/edutap_esc_router_api/index.htm
 test = [
     "pytest",
     "requests-mock",
+    "faker",
 ]
 typecheck  = [
     "mypy",
