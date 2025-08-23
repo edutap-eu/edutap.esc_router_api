@@ -10,23 +10,24 @@ import pytest
 
 
 # URL zur OpenAPI-Spezifikation
-ESC_API = "https://router.europeanstudentcard.eu/esc-rest/v3/api-docs/V2"
+ESC_API_V2 = "https://router.europeanstudentcard.eu/esc-rest/v3/api-docs/V2"
+ESC_API_V1 = "https://router.europeanstudentcard.eu/esc-rest/v3/api-docs/V1"
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 
 
-def get_openapi_spec() -> bool:
+def get_openapi_spec(url, version) -> bool:
     try:
         """Lädt die aktuelle OpenAPI-Spezifikation vom Server."""
-        response = httpx.get(ESC_API)
+        response = httpx.get(url)
         if response.status_code != 200:
             response.raise_for_status()
             raise httpx.HTTPError(
-                f"Faild to fetch data from '{ESC_API}'."
+                f"Failed to fetch data from '{url}'."
                 f"Status Code: {response.status_code}"
                 f"Response: {response}"
             )
         data = json.loads(response.text)
-        with open(DATA_DIR / "esc-router-v2.json", "w") as f:
+        with open(DATA_DIR / f"esc-router-{version}.json", "w") as f:
             json.dump(data, f, indent=2, sort_keys=True)
             f.write("\n")
 
@@ -37,7 +38,8 @@ def get_openapi_spec() -> bool:
 
 
 def test_get_spec():
-    assert get_openapi_spec()
+    assert get_openapi_spec(ESC_API_V2, "v2")
+    assert get_openapi_spec(ESC_API_V1, "v1")
 
 
 @pytest.fixture(scope="session")
@@ -79,15 +81,13 @@ def get_implemented_operations(api_module):
 
 
 def test_all_openapi_operations_implemented(load_spec):
-    """Prüft, ob alle API-Endpunkte implementiert sind."""
+    """Check, if all OpenAPI operations are implemented."""
     spec_ops = get_openapi_operations(load_spec)
     impl_ops = get_implemented_operations(api)
 
     missing = spec_ops - impl_ops
     extra = impl_ops - spec_ops
 
-    assert not missing, f"Fehlende API-Methoden: {sorted(missing)}"
+    assert not missing, f"Missing API methods: {sorted(missing)}"
     if extra:
-        print(
-            f"Warnung: Nicht in OpenAPI definierte Methoden gefunden: {sorted(extra)}"
-        )
+        print(f"Warning: Not defined in OpenAPI methods found: {sorted(extra)}")

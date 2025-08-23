@@ -50,3 +50,5 @@ var/
 /*.json
 
 /_generated/
+
+/token*.txt
