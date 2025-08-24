@@ -29,3 +29,10 @@ def test_generate_ESCN__invalid_PIC():
 
     with pytest.raises(ESCN_Factory_Exception):
         generate_ESCN(pic=PIC)
+
+
+@pytest.mark.parametrize("prefix", [1000, 0, -5, 9987])
+def test_generate_ESCN__invalid_Prefix(prefix: int):
+    PIC = "123456789"
+    with pytest.raises(ESCN_Factory_Exception):
+        generate_ESCN(pic=PIC, prefix=prefix)

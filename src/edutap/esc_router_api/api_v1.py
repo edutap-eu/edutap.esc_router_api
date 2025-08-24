@@ -1,11 +1,12 @@
+from .models_v1 import Card
+from .models_v1 import Student
 from .session import session_manager
 from .utils import generate_ESCN
 from .utils import openapi_method
-from typing import Literal, List
-from pydantic import EmailStr, Field
-
-from .models_v1 import Card
-from .models_v1 import Student
+from pydantic import EmailStr
+from pydantic import Field
+from typing import List
+from typing import Literal
 
 import warnings
 
@@ -28,7 +29,9 @@ def list_students(offset: int = 0, limit: int = 50) -> List[Student]:
         raise Exception(response)
     elif response.status_code == 400:  # Bad Request --> Malformed request
         raise Exception(response)
-    elif response.status_code == 401:  # Unauthorized --> Unauthorized PIC with this Keys
+    elif (
+        response.status_code == 401
+    ):  # Unauthorized --> Unauthorized PIC with this Keys
         raise Exception(response)
     elif response.status_code == 403:  # Forbidden --> Access denied
         raise Exception(response)
@@ -40,8 +43,10 @@ def list_students(offset: int = 0, limit: int = 50) -> List[Student]:
 
 def add_student(
     emailAddress: EmailStr,
-    europeanStudentIdentifier: str = Field(pattern=r"^\d{1,10}$", description="European Student Identifier"),
-    name: str | None = None
+    europeanStudentIdentifier: str = Field(
+        pattern=r"^\d{1,10}$", description="European Student Identifier"
+    ),
+    name: str | None = None,
 ):
     warnings.warn(
         "add_student is deprecated and will be removed soon. Please use API v2 instead.",

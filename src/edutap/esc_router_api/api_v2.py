@@ -1,10 +1,25 @@
-from .session import session_manager
+from .models_v2 import ApiErrorMessage
+from .models_v2 import CardLiteView
+from .models_v2 import CardStatusView
+from .models_v2 import CardUpdateView
+from .models_v2 import CardView
+from .models_v2 import CodeView
+from .models_v2 import ContactPointView
+from .models_v2 import PagedResourcesCardLiteView
 from .models_v2 import PagedResourcesPersonLiteView
+from .models_v2 import PageMetadata
+from .models_v2 import PersonLiteView
+from .models_v2 import PersonOrganisationUpdateView
+from .models_v2 import PersonOrganisationView
+from .models_v2 import PersonUpdateView
+from .models_v2 import PersonView
+from .session import session_manager
 from .utils import generate_ESCN
 from .utils import openapi_method
+from typing import List
 from typing import Literal
-from httpx import HTTPError
 
+import json
 import uuid
 
 
@@ -14,12 +29,17 @@ BASE_PATH = "/api/v2"
 
 
 @openapi_method("GET", BASE_PATH + "/persons", "findAll")
-def list_persons(sort: bool = False, direction: Literal["ASC", "DESC"] = "ASC", page: int = 0, size: int = 10, search: str | None = None) -> list | None:
+def list_persons(
+    sort: Literal["fullName", "identifier"] | None = None,
+    direction: Literal["ASC", "DESC"] = "ASC",
+    page: int = 0,
+    size: int = 10,
+    search: str | None = None,
+) -> list | None:
     session = session_manager.session
     url = f"{session.base_url}{BASE_PATH}/persons"
-    if size == 0:
-        # read all entries
-        pass
+    result: List[PersonLiteView] = []
+
     params = {
         "page": page,
         "size": size,
@@ -29,77 +49,86 @@ def list_persons(sort: bool = False, direction: Literal["ASC", "DESC"] = "ASC", 
     if search:
         params["search"] = search
     response = session.get(url=url, params=params)
-    if response.status_code == 500:  # Internal Server Error --> Server Issue
-        response.raise_for_status()
-    elif (
-        response.status_code == 401
-    ):  # Unauthorized --> Unauthorized PIC with this Keys
-        response.raise_for_status()
-    elif response.status_code == 400:  # Bad Request --> Malformed request
-        response.raise_for_status()
+    print(response)
+    match response.status_code:
+        case 200:
+            data: PagedResourcesPersonLiteView = (
+                PagedResourcesPersonLiteView.model_validate_json(response.text)
+            )
+            print(data.model_dump_json(indent=2))
+            result = data.content
+        case _:
+            # 400: Bad Request --> Malformed request
+            # 401: Unauthorized --> Unauthorized PIC with this Keys
+            # 500: Internal Server Error --> Server Issue
+            data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            print(data.model_dump_json(indent=2))
+            response.raise_for_status()
 
-    elif response.status_code == 200:  # OK --> List of students
-        data: PagedResourcesPersonLiteView = PagedResourcesPersonLiteView.model_validate_json(response.text())
-        print(data)
+    return result
 
 
-    return None
-
-
-@openapi_method("POST", "/persons")
+@openapi_method("POST", BASE_PATH + "/persons", "create")
 def add_person(
-    data: Person | dict,
-    europeanStudentIdentifier: str,
-) -> dict | None:
+    data: PersonUpdateView | dict,
+) -> PersonView | None:
     if isinstance(data, dict):
-        data = Student.model_validate(data)
+        data = PersonUpdateView.model_validate(data)
 
     session = session_manager.session
     url = f"{session.base_url}{BASE_PATH}/persons"
     response = session.post(url=url, data=data.model_dump_json().encode("utf-8"))
 
-    if response.status_code == 500:  # Internal Server Error --> Server Issue
-        raise Exception(response)
-    elif (
-        response.status_code == 410
-    ):  # Gone --> The Student with this ESI has anonymized is account
-        raise Exception(response)
-    elif response.status_code == 403:  # Forbidden --> Unauthorized Keys
-        raise Exception(response)
-    elif (
-        response.status_code == 401
-    ):  # Unauthorized --> Unauthorized PIC with this Keys
-        raise Exception(response)
-    elif (
-        response.status_code == 409
-    ):  # Conflict --> European Student Identifier is already used
-        raise Exception(response)
-    elif response.status_code == 400:  # Bad Request --> Malformed request
-        raise Exception(response)
-
-    elif response.status_code == 201:  # Created --> Student created
-        location = response.get("Location")
-        print(location)
-
+    match response.status_code:
+        case 201:  # Created --> Student created
+            data: PersonView = PersonView.model_validate_json(response.text)
+            print(data.model_dump_json(indent=2))
+            return data
+        case _:
+            # 400: Bad Request --> Malformed request
+            # 401: Unauthorized --> Unauthorized PIC with this Keys
+            # 403: Forbidden --> Unauthorized Keys
+            # 409: Conflict --> European Student Identifier is already used
+            # 410: Gone --> The Student with this ESI has anonymized is account
+            # 500:  # Internal Server Error --> Server Issue
+            data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            print(data.model_dump_json(indent=2))
+            response.raise_for_status()
     return None
 
 
-@openapi_method("GET", "/persons/{esi}")
-def get_person(europeanStudentIdentifier: uuid.UUID) -> Student | None:
+@openapi_method("GET", "/persons/{esi}", "findByExternalId")
+def get_person(esi: uuid.UUID) -> PersonView | None:
+    session = session_manager.session
+    url = f"{session.base_url}{BASE_PATH}/persons/{esi}"
+    response = session.get(url=url)
+
+    match response.status_code:
+        case 200:  # OK --> Entity retrieved
+            data: PersonView = PersonView.model_validate_json(response.text)
+            print(data.model_dump_json(indent=2))
+            return data
+        case _:
+            # 400: Bad Request --> Malformed request
+            # 401: Unauthorized --> Unauthorized PIC with this Keys
+            # 403: Forbidden --> Unauthorized Keys
+            # 404: Not Found --> Entity not found
+            # 500: Internal Server Error --> Server Issue
+            data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            print(data.model_dump_json(indent=2))
+            response.raise_for_status()
     return None
 
 
 @openapi_method("PUT", "/persons/{esi}")
-def update_student(
-    europeanStudentIdentifier: uuid.UUID, data: dict | Student
-) -> Student | None:
+def update_person(esi: uuid.UUID, data: dict | PersonUpdateView) -> PersonView | None:
     return None
 
 
 @openapi_method("DELETE", "/persons/{esi}")
-def delete_student(europeanStudentIdentifier: uuid.UUID) -> bool:
+def delete_person(esi: uuid.UUID) -> bool:
     return False
 
 
-def add_card(europeanStudentIdentifier: uuid.UUID, data: dict | Card) -> Card | None:
+def add_card(esi: uuid.UUID, data: dict | CardUpdateView) -> CardView | None:
     return None

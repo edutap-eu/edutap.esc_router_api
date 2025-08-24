@@ -62,6 +62,7 @@ class Settings(BaseSettings):
     )
 
     environment: Literal["development", "production"] = "development"
+    api_key: str | None = None
 
     @property
     def base_url(self) -> str:
@@ -69,18 +70,21 @@ class Settings(BaseSettings):
             return "https://router.europeanstudentcard.eu/esc-rest/"
         elif self.environment == "development":
             return "https://sandbox.europeanstudentcard.eu/esc-rest/"
-            self._base_url = os.environ.get("ESC_ROUTER_BASE_URL", BASE_URL)
-        return self._base_url
+        return ""
 
 
 class SessionManager:
     """Manages the session to the Google Wallet API and provides helper methods."""
 
-    @property
-    def base_url(self) -> str:
-        if getattr(self, "_base_url", None) is None:
-            self._base_url = os.environ.get("ESC_ROUTER_BASE_URL", BASE_URL)
-        return self._base_url
+    def _make_session(self) -> Session:
+        session = Session()
+        session.settings = Settings()
+        if session.settings.api_key:
+            session.headers.update(
+                {"Authorization": f"Bearer {session.settings.api_key}"}
+            )
+        session.base_url = session.settings.base_url
+        return session
 
     @property
     def session(self) -> Session:

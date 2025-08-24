@@ -27,6 +27,7 @@ dependencies = [
     "pydantic_extra_types",
     "pydantic-settings",
     "phonenumbers",
+    "pycountry",
     "httpx",
   ]
 
