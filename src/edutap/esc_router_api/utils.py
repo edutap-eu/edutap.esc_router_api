@@ -17,11 +17,10 @@ def generate_ESCN(pic: str, prefix: int = 1) -> uuid.UUID:
 
 def openapi_method(method: Literal["GET", "POST", "DELETE", "PUT", "PATCH"], path: str, operation_id: str | None = None):
     """ """
-    BASE_PATH = "/api/v2"
 
     def decorator(func):
         func.__http_method__ = method.upper()
-        func.__openapi_path__ = BASE_PATH + "/" + path
+        func.__openapi_path__ = path
         func.__openapi_operation_id__ = operation_id
         return func
 

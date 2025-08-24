@@ -1,7 +1,9 @@
 from .session import session_manager
+from .models_v2 import PagedResourcesPersonLiteView
 from .utils import generate_ESCN
 from .utils import openapi_method
 from typing import Literal
+from httpx import HTTPError
 
 import uuid
 
@@ -11,26 +13,35 @@ BASE_PATH = "/api/v2"
 # --- Person -----------------------------------------------------------------
 
 
-@openapi_method("GET", "/persons")
-def list_persons(offset: int = 0, limit: int = 0) -> list | None:
+@openapi_method("GET", BASE_PATH + "/persons", "findAll")
+def list_persons(sort: bool = False, direction: Literal["ASC", "DESC"] = "ASC", page: int = 0, size: int = 10, search: str | None = None) -> list | None:
     session = session_manager.session
     url = f"{session.base_url}{BASE_PATH}/persons"
-    if limit == 0:
+    if size == 0:
         # read all entries
         pass
-    response = session.get(url=url, params={offset: offset, limit: limit})
+    params = {
+        "page": page,
+        "size": size,
+        "sort": sort,
+        "direction": direction,
+    }
+    if search:
+        params["search"] = search
+    response = session.get(url=url, params=params)
     if response.status_code == 500:  # Internal Server Error --> Server Issue
-        raise Exception(response)
+        response.raise_for_status()
     elif (
         response.status_code == 401
     ):  # Unauthorized --> Unauthorized PIC with this Keys
-        raise Exception(response)
+        response.raise_for_status()
     elif response.status_code == 400:  # Bad Request --> Malformed request
-        raise Exception(response)
+        response.raise_for_status()
 
     elif response.status_code == 200:  # OK --> List of students
-        location = response.headers.get("Location")
-        print(location)
+        data: PagedResourcesPersonLiteView = PagedResourcesPersonLiteView.model_validate_json(response.text())
+        print(data)
+
 
     return None
 
