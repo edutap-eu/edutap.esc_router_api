@@ -82,15 +82,16 @@ def add_person(
 
     session = session_manager.session
     url = f"{session.base_url}{BASE_PATH}/persons"
-    print(data.model_dump_json(indent=2))
+    logger.debug(data.model_dump_json(indent=2, exclude_none=True))
     response = session.post(
-        url=url, data=data.model_dump_json(exclude_none=True).encode("utf-8")
+        url=url,
+        json=data.model_dump_json(exclude_none=True),
     )
 
     match response.status_code:
         case 201:  # Created --> Student created
             data: PersonView = PersonView.model_validate_json(response.text)
-            print(data.model_dump_json(indent=2))
+            logger.debug(data.model_dump_json(indent=2))
             return data
         case _:
             # 400: Bad Request --> Malformed request
@@ -101,6 +102,7 @@ def add_person(
             # 500:  # Internal Server Error --> Server Issue
             data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
             print(data.model_dump_json(indent=2))
+            logger.error(data.model_dump_json(indent=2))
             response.raise_for_status()
     return None
 

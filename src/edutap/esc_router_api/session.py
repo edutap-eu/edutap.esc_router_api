@@ -1,5 +1,6 @@
 from dotenv import load_dotenv
-from httpx import Client as Session
+from httpx import Client, AsyncClient
+
 from pydantic_settings import BaseSettings
 from pydantic_settings import SettingsConfigDict
 from requests.adapters import HTTPAdapter
@@ -76,20 +77,20 @@ class Settings(BaseSettings):
 class SessionManager:
     """Manages the session to the ESC Router API and provides helper methods."""
 
-    def _make_session(self) -> Session:
-        session = Session()
-        session.settings = Settings()
-        if session.settings.api_key:
-            session.headers.update(
-                {"Authorization": f"Bearer {session.settings.api_key}"}
-            )
-        session.base_url = session.settings.base_url
+    async def _make_session(self) -> AsyncClient:
+        settings = Settings()
+        session = AsyncClient(
+            auth=f"Bearer {settings.api_key}",
+            base_url=settings.base_url,
+            # headers={"Authorization": f"Bearer {settings.api_key}"}
+            http2=True,
+        )
         return session
 
     @property
-    def session(self) -> Session:
+    async def session(self) -> AsyncClient:
         if getattr(_THREADLOCAL, "session", None) is None:
-            _THREADLOCAL.session = self._make_session()
+            _THREADLOCAL.session = await self._make_session()
         return _THREADLOCAL.session  # type: ignore
 
 

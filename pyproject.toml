@@ -28,7 +28,7 @@ dependencies = [
     "pydantic-settings",
     "phonenumbers",
     "pycountry",
-    "httpx",
+    "httpx[http2]",
   ]
 
 [project.urls]

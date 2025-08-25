@@ -32,6 +32,7 @@ def test_add_person():
             person_update_data: PersonUpdateView = PersonUpdateView(
                 fullName=row["name"],
                 identifier=row["esi"],
+                identifierCode="ESI",
                 # identifierCode={
                 #     "key": "",
                 #     "label": "",
@@ -45,7 +46,7 @@ def test_add_person():
                     )
                 ],
             )
-            print(person_update_data.model_dump_json(indent=2))
+            print(person_update_data.model_dump_json(indent=2, exclude_none=True))
 
             person: PersonView = add_person(data=person_update_data)
             assert person is not None
