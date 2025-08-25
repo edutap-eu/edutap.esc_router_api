@@ -32,6 +32,10 @@ repos:
     -   id: codespell
         additional_dependencies:
           - tomli
+        count: True
+        skip: "tests/data/*.json"
+        # Ignore all JSON files in the tests/data directory
+
 -   repo: https://github.com/mgedmin/check-manifest
     rev: "0.49"
     hooks:

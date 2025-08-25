@@ -1,4 +1,5 @@
-from edutap.esc_router_api import api
+# from edutap.esc_router_api import api_v1
+from edutap.esc_router_api import api_v2
 from typing import Any
 from typing import Dict
 
@@ -43,9 +44,9 @@ def test_get_spec():
 
 
 @pytest.fixture(scope="session")
-def load_spec():
+def load_spec(version: int = 2):
     data: Dict[str, Any] = {}
-    with open(DATA_DIR / "esc-router-v2.json") as file:
+    with open(DATA_DIR / f"esc-router-v{version}.json") as file:
         data = json.load(file)
     return data
 
@@ -54,12 +55,13 @@ def get_openapi_operations(spec):
     """Extract all (method, path) from the OpenAPI specification."""
     operations = set()
     for path, methods in spec.get("paths", {}).items():
-        for method in methods:
-            operations.add((method.lower(), path))
+        for method, details in methods.items():
+            print(details)
+            operations.add((method.lower(), path, details.get("operationId")))
 
     print("API endpoints:")
-    for method, path in operations:
-        print(f" * {method}: {path}")
+    for method, path, operation_id in operations:
+        print(f" * {method}: {path} - {operation_id}")
     return operations
 
 
@@ -72,18 +74,38 @@ def get_implemented_operations(api_module):
             and hasattr(obj, "__http_method__")
             and hasattr(obj, "__openapi_path__")
         ):
-            operations.add((obj.__http_method__, obj.__openapi_path__, obj.__name__))
+            operations.add(
+                (
+                    obj.__http_method__,
+                    obj.__openapi_path__,
+                    obj.__name__,
+                    obj.__openapi_operation_id__,
+                )
+            )
 
     print("Our known endpoints:")
-    for method, path, name in operations:
-        print(f" * {method}: {path} - {name}")
+    for method, path, name, operationId in operations:
+        print(f" * {method}: {path} - {name} ({operationId})")
     return operations
 
 
-def test_all_openapi_operations_implemented(load_spec):
+# def test_all_v1_openapi_operations_implemented(load_spec):
+#     """Check, if all OpenAPI operations are implemented."""
+#     spec_ops = get_openapi_operations(load_spec(1))
+#     impl_ops = get_implemented_operations(api_v1)
+
+#     missing = spec_ops - impl_ops
+#     extra = impl_ops - spec_ops
+
+#     assert not missing, f"Missing API methods: {sorted(missing)}"
+#     if extra:
+#         print(f"Warning: Not defined in OpenAPI methods found: {sorted(extra)}")
+
+
+def test_all_v2_openapi_operations_implemented(load_spec):
     """Check, if all OpenAPI operations are implemented."""
     spec_ops = get_openapi_operations(load_spec)
-    impl_ops = get_implemented_operations(api)
+    impl_ops = get_implemented_operations(api_v2)
 
     missing = spec_ops - impl_ops
     extra = impl_ops - spec_ops

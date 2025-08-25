@@ -51,6 +51,10 @@ develop = [
     "pdbpp",
     "ipython",
 ]
+conversion = [
+    "cairosvg",
+    "pillow"
+]
 
 [build-system]
 requires = ["setuptools>=61"]

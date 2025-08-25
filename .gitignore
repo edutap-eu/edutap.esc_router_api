@@ -52,3 +52,6 @@ var/
 /_generated/
 
 /token*.txt
+/card-*.txt
+/card-*.svg
+/card-*.png

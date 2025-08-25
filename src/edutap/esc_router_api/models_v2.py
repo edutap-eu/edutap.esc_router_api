@@ -7,10 +7,12 @@ from pydantic import UUID4
 from pydantic_extra_types.phone_numbers import PhoneNumber
 from typing import Annotated
 from typing import List
+from typing import Literal
 from typing import Optional
 
 
 AllowedAcademicLevel = Annotated[int, Ge(6), Le(8)]
+ACADEMIC_LEVELS: Literal["BACHELOR", "MASTER", "DOCTORATE"]
 AllowedCardType = Annotated[int, Ge(1), Le(4)]
 
 # --- SCHEMA-MODELLE ---
@@ -133,7 +135,7 @@ class CardView(BaseModel):
 
 
 class PersonOrganisationUpdateView(BaseModel):
-    academicLevel: str | None = None
+    academicLevel: Literal["BACHELOR", "MASTER", "DOCTORATE"] | None = None
     email: str | None = None
     fax: str | None = None
     organisationIdentifier: str

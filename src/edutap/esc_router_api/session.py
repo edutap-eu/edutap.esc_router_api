@@ -1,7 +1,7 @@
 from dotenv import load_dotenv
+from httpx import Client as Session
 from pydantic_settings import BaseSettings
 from pydantic_settings import SettingsConfigDict
-from requests import Session
 from requests.adapters import HTTPAdapter
 from typing import Literal
 
@@ -74,7 +74,7 @@ class Settings(BaseSettings):
 
 
 class SessionManager:
-    """Manages the session to the Google Wallet API and provides helper methods."""
+    """Manages the session to the ESC Router API and provides helper methods."""
 
     def _make_session(self) -> Session:
         session = Session()
