@@ -54,11 +54,11 @@ async def test_add_person():
                 person: PersonView = await add_person(data=person_update_data)
                 assert person is not None
                 assert person.fullName == row["name"]
-                assert person.email == row["email"]
+                assert person.identifier == row["esi"]
                 print(person.model_dump_json(indent=2))
             except httpx.HTTPError as e:
                 print(f"Error adding person: {e}")
-                continue
+                assert e.response.status_code == 409
 
 
 @pytest.mark.asyncio

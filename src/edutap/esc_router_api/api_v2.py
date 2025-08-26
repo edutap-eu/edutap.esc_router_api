@@ -22,11 +22,42 @@ from typing import Literal
 import httpx
 import json
 import logging
+import logging.config
 import uuid
 
 
+
+LOGGING_CONFIG = {
+    "version": 1,
+    "handlers": {
+        "default": {
+            "class": "logging.StreamHandler",
+            "formatter": "http",
+            "stream": "ext://sys.stderr"
+        }
+    },
+    "formatters": {
+        "http": {
+            "format": "%(levelname)s [%(asctime)s] %(name)s - %(message)s",
+            "datefmt": "%Y-%m-%d %H:%M:%S",
+        }
+    },
+    'loggers': {
+        'httpx': {
+            'handlers': ['default'],
+            'level': 'DEBUG',
+        },
+        'httpcore': {
+            'handlers': ['default'],
+            'level': 'DEBUG',
+        },
+    }
+}
+
+logging.config.dictConfig(LOGGING_CONFIG)
 logger = logging.getLogger("edutap.esc_router_api")
 logger.setLevel(logging.DEBUG)
+
 
 BASE_PATH = "/api/v2"
 
@@ -85,7 +116,7 @@ async def add_person(
     logger.debug(data.model_dump_json(indent=2, exclude_none=True))
     response = await session.post(
         url=url,
-        json=data.model_dump_json(exclude_none=True),
+        json=data.model_dump(exclude_none=True),
     )
 
     match response.status_code:
