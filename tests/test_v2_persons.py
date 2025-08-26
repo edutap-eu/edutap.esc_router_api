@@ -27,6 +27,7 @@ async def test_get_all_persons():
         assert person.identifier is not None
 
 
+@pytest.mark.asyncio
 async def test_add_person():
     with open(DATA_DIR / "persons.csv") as f:
         reader = csv.DictReader(f)
@@ -60,6 +61,7 @@ async def test_add_person():
                 continue
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "esi",
     [
