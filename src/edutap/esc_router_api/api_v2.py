@@ -75,32 +75,53 @@ async def list_persons(
     session = session_manager.session
     url = f"{BASE_PATH}/persons"
     result: List[PersonLiteView] = []
+    is_empty: bool = False
 
-    params = {
-        "page": page,
-        "size": size,
-        "sort": sort,
-        "direction": direction,
-    }
-    if search:
-        params["search"] = search
-    response = await session.get(url=url, params=params)
-    print(response)
-    match response.status_code:
-        case 200:
-            data: PagedResourcesPersonLiteView = (
-                PagedResourcesPersonLiteView.model_validate_json(response.text)
-            )
-            print(data.model_dump_json(indent=2))
-            result = data.content
-        case _:
-            # 400: Bad Request --> Malformed request
-            # 401: Unauthorized --> Unauthorized PIC with this Keys
-            # 500: Internal Server Error --> Server Issue
-            data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(data.model_dump_json(indent=2))
-            response.raise_for_status()
+    request_size: int = 10
+    request_page: int = page
+    if size == 0 or size > 10:
+        request_size = 10
+    else:
+        request_size = size
 
+    while request_size > 0 and not is_empty:
+        params = {
+            "page": request_page,
+            "size": request_size,
+            "sort": sort,
+            "direction": direction,
+        }
+        if search:
+            params["search"] = search
+        response = await session.get(url=url, params=params)
+        print(response)
+        match response.status_code:
+            case 200:
+                data: PagedResourcesPersonLiteView = (
+                    PagedResourcesPersonLiteView.model_validate_json(response.text)
+                )
+                logger.debug(data.model_dump_json(indent=2))
+                logger.info(f"Pages information: {data.page} / {data.total_pages}")
+                for elem in data.content:
+                    result.append(elem)
+                is_empty = data.empty
+                if len(result) == size:
+                    is_empty = True
+                    request_size = 0
+                elif size == 0:
+                    request_page += 1
+                elif len(result) < len(result) + 10 <= size:
+                    request_page += 1
+                elif len(result) + 10 > size:
+                    request_size = size - len(result)
+                    request_page += 1
+            case _:
+                # 400: Bad Request --> Malformed request
+                # 401: Unauthorized --> Unauthorized PIC with this Keys
+                # 500: Internal Server Error --> Server Issue
+                data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                logger.error(data.model_dump_json(indent=2))
+                response.raise_for_status()
     return result
 
 

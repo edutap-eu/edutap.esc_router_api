@@ -18,7 +18,7 @@ PIC = "999978433"  # LMU-PIC for Test Purpose
 
 @pytest.mark.asyncio
 async def test_get_all_persons():
-    persons = await list_persons(size=5)
+    persons = await list_persons(size=0)
     assert persons is not None
     assert len(persons) >= 0
     for person in persons:
