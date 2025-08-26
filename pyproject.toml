@@ -39,21 +39,17 @@ Documentation = "https://docs.edutap.eu/packages/edutap_esc_router_api/index.htm
 [project.optional-dependencies]
 test = [
     "pytest",
-    "requests-mock",
+    "pytest-asyncio",
+    "pytest_httpx",
     "faker",
 ]
 typecheck  = [
     "mypy",
-    "types-requests",
     "pytest-stub",
 ]
 develop = [
     "pdbpp",
     "ipython",
-]
-conversion = [
-    "cairosvg",
-    "pillow"
 ]
 
 [build-system]

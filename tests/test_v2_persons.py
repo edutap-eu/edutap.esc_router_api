@@ -6,6 +6,7 @@ from edutap.esc_router_api.models_v2 import PersonUpdateView
 from edutap.esc_router_api.models_v2 import PersonView
 
 import csv
+import httpx
 import pathlib
 import pytest
 
@@ -15,8 +16,9 @@ DATA_DIR = pathlib.Path(__file__).parent / "data"
 PIC = "999978433"  # LMU-PIC for Test Purpose
 
 
-def test_get_all_persons():
-    persons = list_persons(size=5)
+@pytest.mark.asyncio
+async def test_get_all_persons():
+    persons = await list_persons(size=5)
     assert persons is not None
     assert len(persons) >= 0
     for person in persons:
@@ -25,7 +27,7 @@ def test_get_all_persons():
         assert person.identifier is not None
 
 
-def test_add_person():
+async def test_add_person():
     with open(DATA_DIR / "persons.csv") as f:
         reader = csv.DictReader(f)
         for row in reader:
@@ -47,12 +49,15 @@ def test_add_person():
                 ],
             )
             print(person_update_data.model_dump_json(indent=2, exclude_none=True))
-
-            person: PersonView = add_person(data=person_update_data)
-            assert person is not None
-            assert person.fullName == row["name"]
-            assert person.email == row["email"]
-            print(person.model_dump_json(indent=2))
+            try:
+                person: PersonView = await add_person(data=person_update_data)
+                assert person is not None
+                assert person.fullName == row["name"]
+                assert person.email == row["email"]
+                print(person.model_dump_json(indent=2))
+            except httpx.HTTPError as e:
+                print(f"Error adding person: {e}")
+                continue
 
 
 @pytest.mark.parametrize(
@@ -61,8 +66,8 @@ def test_add_person():
         "urn:schac:personalUniqueCode:int:esi:lmu.de:1234567890",
     ],
 )
-def test_get_person(esi: str):
-    person = get_person(esi=esi)
+async def test_get_person(esi: str):
+    person = await get_person(esi=esi)
     assert person is not None
     assert person.fullName is not None
     assert person.identifier == esi

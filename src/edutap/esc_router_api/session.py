@@ -77,20 +77,20 @@ class Settings(BaseSettings):
 class SessionManager:
     """Manages the session to the ESC Router API and provides helper methods."""
 
-    async def _make_session(self) -> AsyncClient:
+    def _make_session(self) -> AsyncClient:
         settings = Settings()
         session = AsyncClient(
-            auth=f"Bearer {settings.api_key}",
+            # auth=f"Bearer {settings.api_key}",
             base_url=settings.base_url,
-            # headers={"Authorization": f"Bearer {settings.api_key}"}
+            headers={"Authorization": f"Bearer {settings.api_key}"},
             http2=True,
         )
         return session
 
     @property
-    async def session(self) -> AsyncClient:
+    def session(self) -> AsyncClient:
         if getattr(_THREADLOCAL, "session", None) is None:
-            _THREADLOCAL.session = await self._make_session()
+            _THREADLOCAL.session = self._make_session()
         return _THREADLOCAL.session  # type: ignore
 
 

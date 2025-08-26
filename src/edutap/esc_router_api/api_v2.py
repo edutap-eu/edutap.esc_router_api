@@ -34,7 +34,7 @@ BASE_PATH = "/api/v2"
 
 
 @openapi_method("GET", BASE_PATH + "/persons", "findAll")
-def list_persons(
+async def list_persons(
     sort: Literal["fullName", "identifier"] | None = None,
     direction: Literal["ASC", "DESC"] = "ASC",
     page: int = 0,
@@ -42,7 +42,7 @@ def list_persons(
     search: str | None = None,
 ) -> list | None:
     session = session_manager.session
-    url = f"{session.base_url}{BASE_PATH}/persons"
+    url = f"{BASE_PATH}/persons"
     result: List[PersonLiteView] = []
 
     params = {
@@ -53,7 +53,7 @@ def list_persons(
     }
     if search:
         params["search"] = search
-    response = session.get(url=url, params=params)
+    response = await session.get(url=url, params=params)
     print(response)
     match response.status_code:
         case 200:
@@ -74,16 +74,16 @@ def list_persons(
 
 
 @openapi_method("POST", BASE_PATH + "/persons", "create")
-def add_person(
+async def add_person(
     data: PersonUpdateView | dict,
 ) -> PersonView | None:
     if isinstance(data, dict):
         data = PersonUpdateView.model_validate(data)
 
     session = session_manager.session
-    url = f"{session.base_url}{BASE_PATH}/persons"
+    url = f"{BASE_PATH}/persons"
     logger.debug(data.model_dump_json(indent=2, exclude_none=True))
-    response = session.post(
+    response = await session.post(
         url=url,
         json=data.model_dump_json(exclude_none=True),
     )
@@ -108,10 +108,10 @@ def add_person(
 
 
 @openapi_method("GET", "/persons/{esi}", "findByExternalId")
-def get_person(esi: uuid.UUID) -> PersonView | None:
+async def get_person(esi: uuid.UUID) -> PersonView | None:
     session = session_manager.session
-    url = f"{session.base_url}{BASE_PATH}/persons/{esi}"
-    response = session.get(url=url)
+    url = f"{BASE_PATH}/persons/{esi}"
+    response = await session.get(url=url)
 
     match response.status_code:
         case 200:  # OK --> Entity retrieved
@@ -131,13 +131,13 @@ def get_person(esi: uuid.UUID) -> PersonView | None:
 
 
 @openapi_method("PUT", "/persons/{esi}")
-def update_person(esi: uuid.UUID, data: PersonUpdateView | dict) -> PersonView | None:
+async def update_person(esi: uuid.UUID, data: PersonUpdateView | dict) -> PersonView | None:
     if isinstance(data, dict):
         data = PersonUpdateView.model_validate(data)
 
     session = session_manager.session
-    url = f"{session.base_url}{BASE_PATH}/persons/{esi}"
-    response = session.put(url=url, data=data.model_dump_json().encode("utf-8"))
+    url = f"{BASE_PATH}/persons/{esi}"
+    response = await session.put(url=url, data=data.model_dump_json().encode("utf-8"))
 
     match response.status_code:
         case 200:  # OK --> Entity updated
@@ -157,10 +157,10 @@ def update_person(esi: uuid.UUID, data: PersonUpdateView | dict) -> PersonView |
 
 
 @openapi_method("DELETE", "/persons/{esi}")
-def delete_person(esi: uuid.UUID) -> bool:
+async def delete_person(esi: uuid.UUID) -> bool:
     session = session_manager.session
-    url = f"{session.base_url}{BASE_PATH}/persons/{esi}"
-    response = session.delete(url=url)
+    url = f"{BASE_PATH}/persons/{esi}"
+    response = await session.delete(url=url)
 
     match response.status_code:
         case 204:  # No Content --> Entity deleted
@@ -189,7 +189,7 @@ def list_cards(
     search: str | None = None,
 ) -> List[CardLiteView] | None:
     session = session_manager.session
-    url = f"{session.base_url}{BASE_PATH}/cards"
+    url = f"{BASE_PATH}/cards"
     params = {"sort": sort, "direction": direction, "page": page, "size": size}
     response = session.get(url=url, params=params)
     result: List[CardLiteView] = []
@@ -226,7 +226,7 @@ def add_card(esi: uuid.UUID, data: dict | CardUpdateView) -> CardView | None:
         data = CardUpdateView.model_validate(data)
 
     session = session_manager.session
-    url = f"{session.base_url}{BASE_PATH}/persons/{esi}/cards"
+    url = f"{BASE_PATH}/persons/{esi}/cards"
     response = session.post(url=url, data=data.model_dump_json().encode("utf-8"))
 
     match response.status_code:
@@ -254,7 +254,7 @@ def generate_card_numbers(
     Generate a list of ESCN (European Student Card Numbers) based on the provided parameters.
     """
     session = session_manager.session
-    url = f"{session.base_url}{BASE_PATH}/cards/generate-escn"
+    url = f"{BASE_PATH}/cards/generate-escn"
     response = session.get(
         url=url, params={"pic": pic, "prefix": prefix, "numberOfESCN": numberOfESCN}
     )
@@ -279,7 +279,7 @@ def generate_card_numbers(
 @openapi_method("GET", "/cards/{cardId}", "findById")
 def get_card(card_id: str) -> CardView | None:
     session = session_manager.session
-    url = f"{session.base_url}{BASE_PATH}/cards/{card_id}"
+    url = f"{BASE_PATH}/cards/{card_id}"
     response = session.get(url=url)
 
     match response.status_code:
@@ -302,7 +302,7 @@ def get_card(card_id: str) -> CardView | None:
 @openapi_method("DELETE", "/cards/{cardId}", "deleteById")
 def delete_card(card_id: str) -> bool:
     session = session_manager.session
-    url = f"{session.base_url}{BASE_PATH}/cards/{card_id}"
+    url = f"{BASE_PATH}/cards/{card_id}"
     response = session.delete(url=url)
 
     match response.status_code:
@@ -324,7 +324,7 @@ def delete_card(card_id: str) -> bool:
 @openapi_method("PUT", "/cards/{cardId}", "updateById")
 def update_card(card_id: str, card_data: dict) -> CardView | None:
     session = session_manager.session
-    url = f"{session.base_url}{BASE_PATH}/cards/{card_id}"
+    url = f"{BASE_PATH}/cards/{card_id}"
     response = session.put(url=url, json=card_data)
 
     match response.status_code:
@@ -353,7 +353,7 @@ def get_card_qr_code(
     Accept: Literal["SVG", "TEXT", "image/svg+xml", "text/plain"] = "SVG",
 ) -> bytes | None:
     session = session_manager.session
-    url = f"{session.base_url}{BASE_PATH}/cards/{escn}/qr"
+    url = f"{BASE_PATH}/cards/{escn}/qr"
     params = {
         "orientation": orientation,
         "colours": colours,
@@ -388,7 +388,7 @@ def get_card_qr_code(
 @openapi_method("GET", "/cards/{escn}/status", "getCardStatus")
 def get_card_status(escn: str) -> CardStatusView | None:
     session = session_manager.session
-    url = f"{session.base_url}{BASE_PATH}/cards/{escn}/status"
+    url = f"{BASE_PATH}/cards/{escn}/status"
     response = session.get(url=url)
     response = httpx.get(url=url)  # To raise HTTPError in tests
 
