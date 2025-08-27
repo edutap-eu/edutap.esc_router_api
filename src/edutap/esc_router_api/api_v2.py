@@ -101,9 +101,8 @@ async def list_persons(
                     PagedResourcesPersonLiteView.model_validate_json(response.text)
                 )
                 logger.debug(data.model_dump_json(indent=2))
-                logger.info(f"Pages information: {data.page} / {data.total_pages}")
-                for elem in data.content:
-                    result.append(elem)
+                logger.info(f"Pages information: {data.page}")
+                result.extend(data.content)
                 is_empty = data.empty
                 if len(result) == size:
                     is_empty = True

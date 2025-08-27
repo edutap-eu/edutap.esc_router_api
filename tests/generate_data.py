@@ -16,6 +16,8 @@ def generate_save_email(first_name, last_name, domain="campus.lmu.de"):
     email = email.replace("í", "i").replace("ì", "i").replace("î", "i").replace("ï", "i")
     email = email.replace("ó", "o").replace("ò", "o").replace("ô", "o").replace("õ", "o").replace("ö", "oe")
     email = email.replace("ú", "u").replace("ù", "u").replace("û", "u").replace("ü", "ue")
+    email = email.replace("ç", "c").replace("ñ", "n")
+    email = email.replace(" ", "")
 
     return email
 
@@ -32,6 +34,7 @@ def generate_fake_person_data(locale):
     esi = f"urn:schac:personalUniqueCode:int:esi:lmu.de:{matrikelnummer}"
     fake = Faker("de_DE")
     phone = fake.phone_number()
+    email = fake.email(domain="testcampus.lmu.de")
 
 
     return {
