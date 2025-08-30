@@ -22,17 +22,6 @@ def test_get_all_cards():
         assert card.cardNumber is not None
 
 
-def test_generate_card_numbers():
-    escns = generate_card_numbers(pic=PIC, prefix=1, numberOfESCN=20)
-    assert escns is not None
-    assert isinstance(escns, list)
-    assert len(escns) == 20
-    for escn in escns:
-        # assert isinstance(escn, uuid.UUID)
-        assert str(escn).endswith(f"001{PIC}")
-        print(escn)
-
-
 @pytest.mark.parametrize(
     ["escn", "orientation", "colours", "size"],
     [

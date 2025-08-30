@@ -26,14 +26,13 @@ import logging.config
 import uuid
 
 
-
 LOGGING_CONFIG = {
     "version": 1,
     "handlers": {
         "default": {
             "class": "logging.StreamHandler",
             "formatter": "http",
-            "stream": "ext://sys.stderr"
+            "stream": "ext://sys.stderr",
         }
     },
     "formatters": {
@@ -42,16 +41,16 @@ LOGGING_CONFIG = {
             "datefmt": "%Y-%m-%d %H:%M:%S",
         }
     },
-    'loggers': {
-        'httpx': {
-            'handlers': ['default'],
-            'level': 'DEBUG',
+    "loggers": {
+        "httpx": {
+            "handlers": ["default"],
+            "level": "DEBUG",
         },
-        'httpcore': {
-            'handlers': ['default'],
-            'level': 'DEBUG',
+        "httpcore": {
+            "handlers": ["default"],
+            "level": "DEBUG",
         },
-    }
+    },
 }
 
 logging.config.dictConfig(LOGGING_CONFIG)
@@ -118,7 +117,9 @@ async def list_persons(
                 # 400: Bad Request --> Malformed request
                 # 401: Unauthorized --> Unauthorized PIC with this Keys
                 # 500: Internal Server Error --> Server Issue
-                data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                data: ApiErrorMessage = ApiErrorMessage.model_validate_json(
+                    response.text
+                )
                 logger.error(data.model_dump_json(indent=2))
                 response.raise_for_status()
     return result
@@ -182,7 +183,9 @@ async def get_person(esi: uuid.UUID) -> PersonView | None:
 
 
 @openapi_method("PUT", "/persons/{esi}")
-async def update_person(esi: uuid.UUID, data: PersonUpdateView | dict) -> PersonView | None:
+async def update_person(
+    esi: uuid.UUID, data: PersonUpdateView | dict
+) -> PersonView | None:
     if isinstance(data, dict):
         data = PersonUpdateView.model_validate(data)
 
@@ -298,7 +301,7 @@ def add_card(esi: uuid.UUID, data: dict | CardUpdateView) -> CardView | None:
 
 
 @openapi_method("GET", "/cards/generate-escn", "getEscnList")
-def generate_card_numbers(
+async def generate_card_numbers(
     pic: str, prefix: int = 1, numberOfESCN: int = 1
 ) -> List[uuid.UUID] | None:
     """
@@ -306,7 +309,7 @@ def generate_card_numbers(
     """
     session = session_manager.session
     url = f"{BASE_PATH}/cards/generate-escn"
-    response = session.get(
+    response = await session.get(
         url=url, params={"pic": pic, "prefix": prefix, "numberOfESCN": numberOfESCN}
     )
 

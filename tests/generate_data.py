@@ -10,12 +10,35 @@ DATA_DIR = pathlib.Path(__file__).parent / "data"
 
 def generate_save_email(first_name, last_name, domain="campus.lmu.de"):
     email = f"{first_name.lower()}.{last_name.lower()}@{domain}"
-    email = email.replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss")
-    email = email.replace("á", "a").replace("à", "a").replace("â", "a").replace("ã", "a").replace("å", "a")
-    email = email.replace("é", "e").replace("è", "e").replace("ê", "e").replace("ë", "e")
-    email = email.replace("í", "i").replace("ì", "i").replace("î", "i").replace("ï", "i")
-    email = email.replace("ó", "o").replace("ò", "o").replace("ô", "o").replace("õ", "o").replace("ö", "oe")
-    email = email.replace("ú", "u").replace("ù", "u").replace("û", "u").replace("ü", "ue")
+    email = (
+        email.replace("ä", "ae")
+        .replace("ö", "oe")
+        .replace("ü", "ue")
+        .replace("ß", "ss")
+    )
+    email = (
+        email.replace("á", "a")
+        .replace("à", "a")
+        .replace("â", "a")
+        .replace("ã", "a")
+        .replace("å", "a")
+    )
+    email = (
+        email.replace("é", "e").replace("è", "e").replace("ê", "e").replace("ë", "e")
+    )
+    email = (
+        email.replace("í", "i").replace("ì", "i").replace("î", "i").replace("ï", "i")
+    )
+    email = (
+        email.replace("ó", "o")
+        .replace("ò", "o")
+        .replace("ô", "o")
+        .replace("õ", "o")
+        .replace("ö", "oe")
+    )
+    email = (
+        email.replace("ú", "u").replace("ù", "u").replace("û", "u").replace("ü", "ue")
+    )
     email = email.replace("ç", "c").replace("ñ", "n")
     email = email.replace(" ", "")
 
@@ -28,7 +51,12 @@ def generate_fake_person_data(locale):
 
     first_name = fake.first_name()
     last_name = fake.last_name()
-    email = f"{first_name.lower()}.{last_name.lower()}@campus.lmu.de".replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss")
+    email = (
+        f"{first_name.lower()}.{last_name.lower()}@campus.lmu.de".replace("ä", "ae")
+        .replace("ö", "oe")
+        .replace("ü", "ue")
+        .replace("ß", "ss")
+    )
 
     matrikelnummer = fake.random_int(min=10000000, max=99999999)
     esi = f"urn:schac:personalUniqueCode:int:esi:lmu.de:{matrikelnummer}"
@@ -36,14 +64,12 @@ def generate_fake_person_data(locale):
     phone = fake.phone_number()
     email = fake.email(domain="testcampus.lmu.de")
 
-
     return {
         "name": f"{first_name} {last_name}",
         "email": email,
         "esi": esi,
         "phone": phone,
     }
-
 
 
 def main():
@@ -60,7 +86,7 @@ def main():
         "it_IT": 20,
         "ja_JP": 5,
         "ko_KR": 5,
-        "zh_CN": 5
+        "zh_CN": 5,
     }
 
     persons = []
@@ -75,6 +101,7 @@ def main():
         writer = csv.DictWriter(csvfile, fieldnames=person_data.keys())
         writer.writeheader()
         writer.writerows(persons)
+
 
 if __name__ == "__main__":
     main()

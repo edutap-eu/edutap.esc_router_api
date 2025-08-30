@@ -1,6 +1,6 @@
 from dotenv import load_dotenv
-from httpx import Client, AsyncClient
-
+from httpx import AsyncClient
+from httpx import Client
 from pydantic_settings import BaseSettings
 from pydantic_settings import SettingsConfigDict
 from requests.adapters import HTTPAdapter

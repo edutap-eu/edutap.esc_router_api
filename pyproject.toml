@@ -41,6 +41,7 @@ test = [
     "pytest",
     "pytest-asyncio",
     "pytest_httpx",
+    "pytest-order",
     "faker",
 ]
 typecheck  = [
