@@ -15,33 +15,32 @@ def generate_save_email(first_name, last_name, domain="campus.lmu.de"):
         .replace("ö", "oe")
         .replace("ü", "ue")
         .replace("ß", "ss")
-    )
-    email = (
-        email.replace("á", "a")
+        .replace("á", "a")
         .replace("à", "a")
         .replace("â", "a")
         .replace("ã", "a")
         .replace("å", "a")
-    )
-    email = (
-        email.replace("é", "e").replace("è", "e").replace("ê", "e").replace("ë", "e")
-    )
-    email = (
-        email.replace("í", "i").replace("ì", "i").replace("î", "i").replace("ï", "i")
-    )
-    email = (
-        email.replace("ó", "o")
+        .replace("é", "e")
+        .replace("è", "e")
+        .replace("ê", "e")
+        .replace("ë", "e")
+        .replace("í", "i")
+        .replace("ì", "i")
+        .replace("î", "i")
+        .replace("ï", "i")
+        .replace("ó", "o")
         .replace("ò", "o")
         .replace("ô", "o")
         .replace("õ", "o")
         .replace("ö", "oe")
+        .replace("ú", "u")
+        .replace("ù", "u")
+        .replace("û", "u")
+        .replace("ü", "ue")
+        .replace("ç", "c")
+        .replace("ñ", "n")
+        .replace(" ", "")
     )
-    email = (
-        email.replace("ú", "u").replace("ù", "u").replace("û", "u").replace("ü", "ue")
-    )
-    email = email.replace("ç", "c").replace("ñ", "n")
-    email = email.replace(" ", "")
-
     return email
 
 
@@ -51,18 +50,14 @@ def generate_fake_person_data(locale):
 
     first_name = fake.first_name()
     last_name = fake.last_name()
-    email = (
-        f"{first_name.lower()}.{last_name.lower()}@campus.lmu.de".replace("ä", "ae")
-        .replace("ö", "oe")
-        .replace("ü", "ue")
-        .replace("ß", "ss")
-    )
+    email = fake.email(domain="testcampus.lmu.de")
+    # email = generate_save_email(first_name.lower(), last_name.lower(), "@testcampus.lmu.de")
 
     matrikelnummer = fake.random_int(min=10000000, max=99999999)
     esi = f"urn:schac:personalUniqueCode:int:esi:lmu.de:{matrikelnummer}"
     fake = Faker("de_DE")
     phone = fake.phone_number()
-    email = fake.email(domain="testcampus.lmu.de")
+    # email = fake.email(domain="testcampus.lmu.de")
 
     return {
         "name": f"{first_name} {last_name}",

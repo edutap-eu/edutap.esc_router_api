@@ -1,6 +1,5 @@
 from dotenv import load_dotenv
 from httpx import AsyncClient
-from httpx import Client
 from pydantic_settings import BaseSettings
 from pydantic_settings import SettingsConfigDict
 from requests.adapters import HTTPAdapter
@@ -62,14 +61,14 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    environment: Literal["development", "production"] = "development"
+    environment: Literal["development", "testing", "production"] = "development"
     api_key: str | None = None
 
     @property
     def base_url(self) -> str:
         if self.environment == "production":
             return "https://router.europeanstudentcard.eu/esc-rest/"
-        elif self.environment == "development":
+        elif self.environment in ["development", "testing"]:
             return "https://sandbox.europeanstudentcard.eu/esc-rest/"
         return ""
 

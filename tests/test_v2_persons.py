@@ -1,10 +1,10 @@
-from edutap.esc_router_api.api_v2 import add_person
-from edutap.esc_router_api.api_v2 import delete_person
-from edutap.esc_router_api.api_v2 import get_person
-from edutap.esc_router_api.api_v2 import list_persons
-from edutap.esc_router_api.models_v2 import PersonOrganisationUpdateView
-from edutap.esc_router_api.models_v2 import PersonUpdateView
-from edutap.esc_router_api.models_v2 import PersonView
+from edutap.esc_router_api.api import add_person
+from edutap.esc_router_api.api import delete_person
+from edutap.esc_router_api.api import get_person
+from edutap.esc_router_api.api import list_persons
+from edutap.esc_router_api.models import PersonOrganisationUpdateView
+from edutap.esc_router_api.models import PersonUpdateView
+from edutap.esc_router_api.models import PersonView
 
 import csv
 import httpx
@@ -68,7 +68,8 @@ async def test_add_person():
 async def test_get_all_persons():
     persons = await list_persons(size=0)
     assert persons is not None
-    assert len(persons) == 0
+    assert len(persons) >= 0
+    assert len(persons) == 205
     for person in persons:
         print(person.model_dump_json(indent=2))
         assert person.fullName is not None
@@ -80,7 +81,11 @@ async def test_get_all_persons():
 @pytest.mark.parametrize(
     "esi",
     [
-        "urn:schac:personalUniqueCode:int:esi:lmu.de:1234567890",
+        "urn:schac:personalUniqueCode:int:esi:lmu.de:94346973",
+        "urn:schac:personalUniqueCode:int:esi:lmu.de:74001183",
+        "urn:schac:personalUniqueCode:int:esi:lmu.de:78040461",
+        "urn:schac:personalUniqueCode:int:esi:lmu.de:22413360",
+        "urn:schac:personalUniqueCode:int:esi:lmu.de:33244122",
     ],
 )
 async def test_get_person(esi: str):
@@ -96,7 +101,11 @@ async def test_get_person(esi: str):
 @pytest.mark.parametrize(
     "esi",
     [
-        "urn:schac:personalUniqueCode:int:esi:lmu.de:1234567890",
+        "urn:schac:personalUniqueCode:int:esi:lmu.de:94346973",
+        "urn:schac:personalUniqueCode:int:esi:lmu.de:74001183",
+        "urn:schac:personalUniqueCode:int:esi:lmu.de:78040461",
+        "urn:schac:personalUniqueCode:int:esi:lmu.de:22413360",
+        "urn:schac:personalUniqueCode:int:esi:lmu.de:33244122",
     ],
 )
 async def test_delete_person(esi: str):
@@ -110,11 +119,12 @@ async def test_delete_person(esi: str):
 @pytest.mark.order(6)
 @pytest.mark.asyncio
 async def test_delete_all_persons():
-    all_persons = list_persons(size=0)
+    all_persons = await list_persons(size=0)
 
     for person in all_persons:
         esi = person.identifier
-        await delete_person(esi=esi)
+        return_code = await delete_person(esi=esi)
+        assert return_code is True
 
-    all_persons = list_persons(size=0)
+    all_persons = await list_persons(size=0)
     assert len(all_persons) == 0

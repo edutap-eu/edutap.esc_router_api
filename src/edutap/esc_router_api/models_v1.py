@@ -5,7 +5,6 @@ from pydantic import BaseModel
 from pydantic import EmailStr
 from typing import Annotated
 from typing import List
-from typing import Literal
 from uuid import UUID
 
 import datetime
@@ -23,7 +22,7 @@ class Student(BaseModel):
     emailAddress: EmailStr
     expiryData: datetime
     name: str | None = None
-    phoneNumbe: PhoneNumber | None = None
+    phoneNumber: PhoneNumber | None = None
     academicLevel: AllowedAcademicLevel | None = None
 
 

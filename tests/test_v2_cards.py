@@ -1,12 +1,10 @@
 from httpx import HTTPError
-from src.edutap.esc_router_api.api_v2 import generate_card_numbers
-from src.edutap.esc_router_api.api_v2 import get_card_qr_code
-from src.edutap.esc_router_api.api_v2 import get_card_status
-from src.edutap.esc_router_api.api_v2 import list_cards
-from src.edutap.esc_router_api.models_v2 import CardView
+from src.edutap.esc_router_api.api import get_card_qr_code
+from src.edutap.esc_router_api.api import get_card_status
+from src.edutap.esc_router_api.api import list_cards
+from src.edutap.esc_router_api.models import CardView
 
 import pytest
-import uuid
 
 
 PIC = "999978433"  # LMU-PIC for Test Purpose

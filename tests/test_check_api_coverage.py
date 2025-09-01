@@ -1,5 +1,4 @@
-# from edutap.esc_router_api import api_v1
-from edutap.esc_router_api import api_v2
+from edutap.esc_router_api import api
 from typing import Any
 from typing import Dict
 
@@ -89,23 +88,10 @@ def get_implemented_operations(api_module):
     return operations
 
 
-# def test_all_v1_openapi_operations_implemented(load_spec):
-#     """Check, if all OpenAPI operations are implemented."""
-#     spec_ops = get_openapi_operations(load_spec(1))
-#     impl_ops = get_implemented_operations(api_v1)
-
-#     missing = spec_ops - impl_ops
-#     extra = impl_ops - spec_ops
-
-#     assert not missing, f"Missing API methods: {sorted(missing)}"
-#     if extra:
-#         print(f"Warning: Not defined in OpenAPI methods found: {sorted(extra)}")
-
-
 def test_all_v2_openapi_operations_implemented(load_spec):
     """Check, if all OpenAPI operations are implemented."""
     spec_ops = get_openapi_operations(load_spec)
-    impl_ops = get_implemented_operations(api_v2)
+    impl_ops = get_implemented_operations(api_module=api)
 
     missing = spec_ops - impl_ops
     extra = impl_ops - spec_ops
