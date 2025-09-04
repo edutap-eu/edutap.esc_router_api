@@ -74,7 +74,7 @@ markers = [
 ]
 
 # falls du pytest-dotenv verwendest
-dotenv_files = [".env"]
+# dotenv_files = [".env"]
 
 [tool.black]
 line-length = 160

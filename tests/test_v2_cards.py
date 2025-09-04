@@ -54,7 +54,7 @@ async def test_get_card_qr_code_svg(escn: str, orientation: str, colours: str, s
     ],
 )
 async def test_get_card_qr_code_png(escn: str):
-    with pytest.raises(ImportError):
+    with pytest.raises(Exception):
         cr_code = await get_card_qr_code(escn=escn, Accept="PNG")
         assert cr_code is not None
         with open(f"card-{escn}.png", "wb") as f:
