@@ -6,8 +6,6 @@ from pydantic_settings import SettingsConfigDict
 # from requests.adapters import HTTPAdapter
 from typing import Literal
 
-import json
-import os
 import threading
 
 

@@ -68,6 +68,13 @@ minversion = "6.0"
 testpaths = [
     "tests",
 ]
+asyncio_mode = "auto"
+markers = [
+    "asyncio: mark test as asyncio-based",
+]
+
+# falls du pytest-dotenv verwendest
+dotenv_files = [".env"]
 
 [tool.black]
 line-length = 160

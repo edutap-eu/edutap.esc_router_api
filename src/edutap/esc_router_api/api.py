@@ -3,14 +3,9 @@ from .models import CardLiteView
 from .models import CardStatusView
 from .models import CardUpdateView
 from .models import CardView
-from .models import CodeView
-from .models import ContactPointView
 from .models import PagedResourcesCardLiteView
 from .models import PagedResourcesPersonLiteView
-from .models import PageMetadata
 from .models import PersonLiteView
-from .models import PersonOrganisationUpdateView
-from .models import PersonOrganisationView
 from .models import PersonUpdateView
 from .models import PersonView
 from .session import session_manager
@@ -18,6 +13,8 @@ from .utils import openapi_method
 from annotated_types import Ge
 from annotated_types import Le
 from typing import Annotated
+from typing import Any
+from typing import Dict
 from typing import List
 from typing import Literal
 
@@ -85,7 +82,7 @@ async def list_persons(
         request_size = size
 
     while request_size > 0 and not is_empty:
-        params = {
+        params: Dict[str, Any] = {
             "page": request_page,
             "size": request_size,
             "sort": sort,
@@ -100,7 +97,8 @@ async def list_persons(
                 data: PagedResourcesPersonLiteView = PagedResourcesPersonLiteView.model_validate_json(response.text)
                 logger.debug(data.model_dump_json(indent=2))
                 logger.info(f"Pages information: {data.page}")
-                result.extend(data.content)
+                if data.content is not None:
+                    result.extend(data.content)
                 is_empty = data.empty
                 if len(result) == size:
                     is_empty = True
@@ -119,8 +117,8 @@ async def list_persons(
                 # 400: Bad Request --> Malformed request
                 # 401: Unauthorized --> Unauthorized PIC with this Keys
                 # 500: Internal Server Error --> Server Issue
-                data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-                logger.error(data.model_dump_json(indent=2))
+                message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                logger.error(message.model_dump_json(indent=2))
                 response.raise_for_status()
     return result
 
@@ -155,9 +153,8 @@ async def add_person(
             # 409: Conflict --> European Student Identifier is already used
             # 410: Gone --> The Student with this ESI has anonymized is account
             # 500:  # Internal Server Error --> Server Issue
-            data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(data.model_dump_json(indent=2))
-            logger.error(data.model_dump_json(indent=2))
+            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            logger.error(message.model_dump_json(indent=2))
             response.raise_for_status()
     return None
 
@@ -182,8 +179,8 @@ async def get_person(esi: uuid.UUID) -> PersonView | None:
             # 403: Forbidden --> Unauthorized Keys
             # 404: Not Found --> Entity not found
             # 500: Internal Server Error --> Server Issue
-            data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(data.model_dump_json(indent=2))
+            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            print(message.model_dump_json(indent=2))
             response.raise_for_status()
     return None
 
@@ -211,8 +208,8 @@ async def update_person(esi: uuid.UUID, data: PersonUpdateView | dict) -> Person
             # 403: Forbidden --> Unauthorized Keys
             # 404: Not Found --> Entity not found
             # 500: Internal Server Error --> Server Issue
-            data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(data.model_dump_json(indent=2))
+            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            print(message.model_dump_json(indent=2))
             response.raise_for_status()
     return None
 
@@ -235,8 +232,8 @@ async def delete_person(esi: uuid.UUID) -> bool:
             # 403: Forbidden --> Unauthorized Keys
             # 404: Not Found --> Entity not found
             # 500: Internal Server Error --> Server Issue
-            data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(data.model_dump_json(indent=2))
+            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            print(message.model_dump_json(indent=2))
             response.raise_for_status()
     return False
 
@@ -280,8 +277,9 @@ async def list_cards(
                 data: PagedResourcesCardLiteView = PagedResourcesCardLiteView.model_validate_json(response.text)
                 logger.debug(data.model_dump_json(indent=2))
                 logger.info(f"Pages information: {data.page}")
-                result.extend(data.content)
-                is_empty = data.empty
+                if data.content is not None:
+                    result.extend(data.content)
+                is_empty = data.empty is True
                 if len(result) == size:
                     is_empty = True
                     request_size = 0
@@ -299,26 +297,29 @@ async def list_cards(
                 # 400: Bad Request --> Malformed request
                 # 401: Unauthorized --> Unauthorized PIC with this Keys
                 # 500: Internal Server Error --> Server Issue
-                data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-                logger.error(data.model_dump_json(indent=2))
+                message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                logger.error(message.model_dump_json(indent=2))
                 response.raise_for_status()
     return result
 
 
 @openapi_method("POST", "/persons/{esi}/cards", "createCard")
-async def add_card(esi: str, data: dict | CardUpdateView) -> CardView | None:
+async def add_card(esi: str, data: CardUpdateView | dict) -> CardView | None:
+    input_data: CardUpdateView
     if isinstance(data, dict):
-        data = CardUpdateView.model_validate(data)
+        input_data = CardUpdateView.model_validate(data)
+    else:
+        input_data = data
 
     session = session_manager.session
     url = f"{BASE_PATH}/persons/{esi}/cards"
-    response = await session.post(url=url, json=data.model_dump())
+    response = await session.post(url=url, json=input_data.model_dump())
 
     match response.status_code:
         case 201:  # Created --> Entity created
-            data: CardView = CardView.model_validate_json(response.text)
-            print(data.model_dump_json(indent=2))
-            return data
+            result_data: CardView = CardView.model_validate_json(response.text)
+            print(result_data.model_dump_json(indent=2))
+            return result_data
         case 401:  # Unauthorized - No valid key provided
             logger.error("Unauthorized request")
             response.raise_for_status()
@@ -328,8 +329,8 @@ async def add_card(esi: str, data: dict | CardUpdateView) -> CardView | None:
             # 403: Forbidden --> Unauthorized Keys
             # 404: Not Found --> Entity not found
             # 500: Internal Server Error --> Server Issue
-            data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(data.model_dump_json(indent=2))
+            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            print(message.model_dump_json(indent=2))
             response.raise_for_status()
     return None
 
@@ -354,8 +355,8 @@ async def get_card(card_id: str) -> CardView | None:
             # 403: Forbidden --> Unauthorized Keys
             # 404: Not Found --> Entity not found
             # 500: Internal Server Error --> Server Issue
-            data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(data.model_dump_json(indent=2))
+            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            print(message.model_dump_json(indent=2))
             response.raise_for_status()
     return None
 
@@ -394,7 +395,7 @@ async def update_card(card_id: str, card_data: dict) -> CardView | None:
     match response.status_code:
         case 200:  # OK --> Entity updated
             data: CardView = CardView.model_validate_json(response.text)
-            print(data.model_dump_json(indent=2))
+            logger.debug(data.model_dump_json(indent=2))
             return data
         case 401:  # Unauthorized - No valid key provided
             logger.error("Unauthorized request")
@@ -405,8 +406,8 @@ async def update_card(card_id: str, card_data: dict) -> CardView | None:
             # 403: Forbidden --> Unauthorized Keys
             # 404: Not Found --> Entity not found
             # 500: Internal Server Error --> Server Issue
-            data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(data.model_dump_json(indent=2))
+            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            print(message.model_dump_json(indent=2))
             response.raise_for_status()
     return None
 
@@ -415,7 +416,7 @@ async def update_card(card_id: str, card_data: dict) -> CardView | None:
 
 
 @openapi_method("GET", "/cards/generate-escn", "getEscnList")
-async def generate_card_numbers(pic: str, prefix: int = 1, numberOfESCN: int = Annotated[int, Ge(0), Le(100)]) -> List[uuid.UUID] | None:
+async def generate_card_numbers(pic: str, prefix: int = 1, numberOfESCN: Annotated[int, Ge(0), Le(100)] = 10) -> List[uuid.UUID] | None:
     """
     Generate a list of ESCN (European Student Card Numbers) based on the provided parameters.
     """
@@ -439,8 +440,8 @@ async def generate_card_numbers(pic: str, prefix: int = 1, numberOfESCN: int = A
             # 404: Not Found --> Entity not found
             # 500: Internal Server Error --> Server Issue
             logger.error(response)
-            data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            logger.error(data.model_dump_json(indent=2))
+            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            logger.error(message.model_dump_json(indent=2))
             response.raise_for_status()
     return None
 
@@ -481,8 +482,8 @@ async def get_card_qr_code(
             # 403: Forbidden --> Unauthorized Keys
             # 404: Not Found --> Entity not found
             # 500: Internal Server Error --> Server Issue
-            data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(data.model_dump_json(indent=2))
+            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            print(message.model_dump_json(indent=2))
             response.raise_for_status()
     return None
 
@@ -507,7 +508,7 @@ async def get_card_status(escn: str) -> CardStatusView | None:
             # 403: Forbidden --> Unauthorized Keys
             # 404: Not Found --> Entity not found
             # 500: Internal Server Error --> Server Issue
-            data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            logger.error(data.model_dump_json(indent=2))
+            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            logger.error(message.model_dump_json(indent=2))
             response.raise_for_status()
     return None
