@@ -21,11 +21,7 @@ def get_openapi_spec(url, version) -> bool:
         response = httpx.get(url)
         if response.status_code != 200:
             response.raise_for_status()
-            raise httpx.HTTPError(
-                f"Failed to fetch data from '{url}'."
-                f"Status Code: {response.status_code}"
-                f"Response: {response}"
-            )
+            raise httpx.HTTPError(f"Failed to fetch data from '{url}'.Status Code: {response.status_code}Response: {response}")
         data = json.loads(response.text)
         with open(DATA_DIR / f"esc-router-{version}.json", "w") as f:
             json.dump(data, f, indent=2, sort_keys=True)
@@ -68,11 +64,7 @@ def get_implemented_operations(api_module):
     """Find all functions in the API module that are decorated with @openapi_method."""
     operations = set()
     for _, obj in inspect.getmembers(api_module):
-        if (
-            callable(obj)
-            and hasattr(obj, "__http_method__")
-            and hasattr(obj, "__openapi_path__")
-        ):
+        if callable(obj) and hasattr(obj, "__http_method__") and hasattr(obj, "__openapi_path__"):
             operations.add(
                 (
                     obj.__http_method__,

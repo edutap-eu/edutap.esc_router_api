@@ -2,7 +2,8 @@ from dotenv import load_dotenv
 from httpx import AsyncClient
 from pydantic_settings import BaseSettings
 from pydantic_settings import SettingsConfigDict
-from requests.adapters import HTTPAdapter
+
+# from requests.adapters import HTTPAdapter
 from typing import Literal
 
 import json
@@ -18,29 +19,29 @@ _THREADLOCAL = threading.local()
 BASE_URL = "https://api.europeanstudentcard.eu/"  # Production --> for real data only
 
 
-class HTTPRecorder(HTTPAdapter):
-    """Record the HTTP requests and responses to a file."""
+# class HTTPRecorder(HTTPAdapter):
+#     """Record the HTTP requests and responses to a file."""
 
-    def send(self, request, *args, **kwargs):
-        req_record = {
-            "method": request.method,
-            "url": request.url,
-            "headers": dict(request.headers),
-            "body": json.loads(request.body.decode("utf-8")),
-        }
-        target_directory = os.environ.get("ESC_ROUTER_RECORD_API_CALLS_DIR")
-        filename = f"{target_directory}/{request.method}-{request.url.replace('/', '_')}.REQUEST.json"
-        with open(filename, "w") as fp:
-            json.dump(req_record, fp, indent=4)
-        response = super().send(request, *args, **kwargs)
-        resp_record = {
-            "status_code": response.status_code,
-            "headers": dict(response.headers),
-            "body": response.json(),
-        }
-        with open(filename.replace("REQUEST", "RESPONSE"), "w") as fp:
-            json.dump(resp_record, fp, indent=4)
-        return response
+#     def send(self, request, *args, **kwargs):
+#         req_record = {
+#             "method": request.method,
+#             "url": request.url,
+#             "headers": dict(request.headers),
+#             "body": json.loads(request.body.decode("utf-8")),
+#         }
+#         target_directory = os.environ.get("ESC_ROUTER_RECORD_API_CALLS_DIR")
+#         filename = f"{target_directory}/{request.method}-{request.url.replace('/', '_')}.REQUEST.json"
+#         with open(filename, "w") as fp:
+#             json.dump(req_record, fp, indent=4)
+#         response = super().send(request, *args, **kwargs)
+#         resp_record = {
+#             "status_code": response.status_code,
+#             "headers": dict(response.headers),
+#             "body": response.json(),
+#         }
+#         with open(filename.replace("REQUEST", "RESPONSE"), "w") as fp:
+#             json.dump(resp_record, fp, indent=4)
+#         return response
 
 
 class Settings(BaseSettings):

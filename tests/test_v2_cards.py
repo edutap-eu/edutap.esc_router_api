@@ -1,8 +1,8 @@
+from edutap.esc_router_api.api import get_card_qr_code
+from edutap.esc_router_api.api import get_card_status
+from edutap.esc_router_api.api import list_cards
+from edutap.esc_router_api.models import CardView
 from httpx import HTTPError
-from src.edutap.esc_router_api.api import get_card_qr_code
-from src.edutap.esc_router_api.api import get_card_status
-from src.edutap.esc_router_api.api import list_cards
-from src.edutap.esc_router_api.models import CardView
 
 import pytest
 
@@ -10,8 +10,9 @@ import pytest
 PIC = "999978433"  # LMU-PIC for Test Purpose
 
 
-def test_get_all_cards():
-    cards = list_cards(size=5)
+@pytest.mark.asyncio
+async def test_get_all_cards():
+    cards = await list_cards(size=0)
     assert cards is not None
     assert len(cards) >= 0
     card: CardView
@@ -20,6 +21,7 @@ def test_get_all_cards():
         assert card.cardNumber is not None
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     ["escn", "orientation", "colours", "size"],
     [
@@ -37,62 +39,64 @@ def test_get_all_cards():
         ("25539be8-6423-103e-add8-988999978433", "vertical", "inverted", "M"),
     ],
 )
-def test_get_card_qr_code_svg(escn: str, orientation: str, colours: str, size: str):
-    cr_code = get_card_qr_code(
-        escn=escn, orientation=orientation, colours=colours, size=size
-    )
+async def test_get_card_qr_code_svg(escn: str, orientation: str, colours: str, size: str):
+    cr_code = await get_card_qr_code(escn=escn, orientation=orientation, colours=colours, size=size)
     assert cr_code is not None
     with open(f"card-{escn}-{orientation}-{colours}-{size}.svg", "wb") as f:
         f.write(cr_code)
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "escn",
     [
         "25539be8-6423-103e-add8-988999978433",
     ],
 )
-def test_get_card_qr_code_png(escn: str):
+async def test_get_card_qr_code_png(escn: str):
     with pytest.raises(ImportError):
-        cr_code = get_card_qr_code(escn=escn, Accept="PNG")
+        cr_code = await get_card_qr_code(escn=escn, Accept="PNG")
         assert cr_code is not None
         with open(f"card-{escn}.png", "wb") as f:
             f.write(cr_code)
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "escn",
     [
         "25539be8-6423-103e-add8-988999978433",
     ],
 )
-def test_get_card_qr_code_text(escn: str):
-    cr_code = get_card_qr_code(escn=escn, Accept="TEXT")
+async def test_get_card_qr_code_text(escn: str):
+    cr_code = await get_card_qr_code(escn=escn, Accept="TEXT")
     assert cr_code is not None
     with open(f"card-{escn}.txt", "wb") as f:
         f.write(cr_code)
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "escn",
     [
         "25539be8-6423-103e-add8-988999978433",
     ],
 )
-def test_get_card_status(escn: str):
-    status = get_card_status(escn=escn)
+async def test_get_card_status(escn: str):
+    status = await get_card_status(escn=escn)
     assert status is not None
     print(status)
 
 
+@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "escn",
     [
         "25539be8-6423-103e-add8-988997978433",
     ],
 )
-def test_get_card_status_invalid(escn: str):
+async def test_get_card_status_invalid(escn: str):
     with pytest.raises(HTTPError):  # match=f"Card({escn}) not found"):
-        status = get_card_status(escn=escn)
+        status = await get_card_status(escn=escn)
         assert status is not None
         print(status)

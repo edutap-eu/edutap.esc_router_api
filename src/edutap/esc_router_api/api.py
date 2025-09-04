@@ -97,9 +97,7 @@ async def list_persons(
         print(response)
         match response.status_code:
             case 200:
-                data: PagedResourcesPersonLiteView = (
-                    PagedResourcesPersonLiteView.model_validate_json(response.text)
-                )
+                data: PagedResourcesPersonLiteView = PagedResourcesPersonLiteView.model_validate_json(response.text)
                 logger.debug(data.model_dump_json(indent=2))
                 logger.info(f"Pages information: {data.page}")
                 result.extend(data.content)
@@ -121,9 +119,7 @@ async def list_persons(
                 # 400: Bad Request --> Malformed request
                 # 401: Unauthorized --> Unauthorized PIC with this Keys
                 # 500: Internal Server Error --> Server Issue
-                data: ApiErrorMessage = ApiErrorMessage.model_validate_json(
-                    response.text
-                )
+                data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
                 logger.error(data.model_dump_json(indent=2))
                 response.raise_for_status()
     return result
@@ -193,9 +189,7 @@ async def get_person(esi: uuid.UUID) -> PersonView | None:
 
 
 @openapi_method("PUT", "/persons/{esi}")
-async def update_person(
-    esi: uuid.UUID, data: PersonUpdateView | dict
-) -> PersonView | None:
+async def update_person(esi: uuid.UUID, data: PersonUpdateView | dict) -> PersonView | None:
     if isinstance(data, dict):
         data = PersonUpdateView.model_validate(data)
 
@@ -251,7 +245,7 @@ async def delete_person(esi: uuid.UUID) -> bool:
 
 
 @openapi_method("GET", "/cards", "findAll_1'")
-def list_cards(
+async def list_cards(
     sort: Literal["ESCN"] | None = None,
     direction: Literal["ASC", "DESC"] | None = None,
     page: int = 0,
@@ -260,47 +254,65 @@ def list_cards(
 ) -> List[CardLiteView] | None:
     session = session_manager.session
     url = f"{BASE_PATH}/cards"
-    params = {"sort": sort, "direction": direction, "page": page, "size": size}
-    response = session.get(url=url, params=params)
     result: List[CardLiteView] = []
-    logger.debug(f"Request URL: {url}")
-    logger.debug(f"Request Params: {params}")
+    is_empty: bool = False
 
-    match response.status_code:
-        case 200:  # OK --> Entity retrieved
-            data: PagedResourcesCardLiteView = (
-                PagedResourcesCardLiteView.model_validate_json(response.text)
-            )
-            logger.debug(data.model_dump_json(indent=2))
-            if data.empty is False:
-                print("Retrieved cards:")
-                cards = [card for card in data.content]
-                for card in cards:
-                    print(card.model_dump_json(indent=2))
-                    result.append(card)
-        case 401:  # Unauthorized - No valid key provided
-            logger.error("Unauthorized request")
-            response.raise_for_status()
-        case _:
-            # 400: Bad Request --> Malformed request
-            # 401: Unauthorized --> Unauthorized PIC with this Keys
-            # 403: Forbidden --> Unauthorized Keys
-            # 404: Not Found --> Entity not found
-            # 500: Internal Server Error --> Server Issue
-            data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            logger.error(data.model_dump_json(indent=2))
-            response.raise_for_status()
+    request_size: int = 10
+    request_page: int = page
+    if size == 0 or size > 10:
+        request_size = 10
+    else:
+        request_size = size
+
+    while request_size > 0 and not is_empty:
+        params = {
+            "page": request_page,
+            "size": request_size,
+            "sort": sort,
+            "direction": direction,
+        }
+        if search:
+            params["search"] = search
+        response = await session.get(url=url, params=params)
+        print(response)
+        match response.status_code:
+            case 200:
+                data: PagedResourcesCardLiteView = PagedResourcesCardLiteView.model_validate_json(response.text)
+                logger.debug(data.model_dump_json(indent=2))
+                logger.info(f"Pages information: {data.page}")
+                result.extend(data.content)
+                is_empty = data.empty
+                if len(result) == size:
+                    is_empty = True
+                    request_size = 0
+                elif size == 0:
+                    request_page += 1
+                elif len(result) < len(result) + 10 <= size:
+                    request_page += 1
+                elif len(result) + 10 > size:
+                    request_size = size - len(result)
+                    request_page += 1
+            case 401:  # Unauthorized - No valid key provided
+                logger.error("Unauthorized request")
+                response.raise_for_status()
+            case _:
+                # 400: Bad Request --> Malformed request
+                # 401: Unauthorized --> Unauthorized PIC with this Keys
+                # 500: Internal Server Error --> Server Issue
+                data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                logger.error(data.model_dump_json(indent=2))
+                response.raise_for_status()
     return result
 
 
 @openapi_method("POST", "/persons/{esi}/cards", "createCard")
-def add_card(esi: uuid.UUID, data: dict | CardUpdateView) -> CardView | None:
+async def add_card(esi: str, data: dict | CardUpdateView) -> CardView | None:
     if isinstance(data, dict):
         data = CardUpdateView.model_validate(data)
 
     session = session_manager.session
     url = f"{BASE_PATH}/persons/{esi}/cards"
-    response = session.post(url=url, data=data.model_dump_json().encode("utf-8"))
+    response = await session.post(url=url, json=data.model_dump())
 
     match response.status_code:
         case 201:  # Created --> Entity created
@@ -323,10 +335,10 @@ def add_card(esi: uuid.UUID, data: dict | CardUpdateView) -> CardView | None:
 
 
 @openapi_method("GET", "/cards/{cardId}", "findById")
-def get_card(card_id: str) -> CardView | None:
+async def get_card(card_id: str) -> CardView | None:
     session = session_manager.session
     url = f"{BASE_PATH}/cards/{card_id}"
-    response = session.get(url=url)
+    response = await session.get(url=url)
 
     match response.status_code:
         case 200:  # OK --> Entity retrieved
@@ -349,10 +361,10 @@ def get_card(card_id: str) -> CardView | None:
 
 
 @openapi_method("DELETE", "/cards/{cardId}", "deleteById")
-def delete_card(card_id: str) -> bool:
+async def delete_card(card_id: str) -> bool:
     session = session_manager.session
     url = f"{BASE_PATH}/cards/{card_id}"
-    response = session.delete(url=url)
+    response = await session.delete(url=url)
 
     match response.status_code:
         case 204:  # No Content --> Entity deleted
@@ -374,10 +386,10 @@ def delete_card(card_id: str) -> bool:
 
 
 @openapi_method("PUT", "/cards/{cardId}", "updateById")
-def update_card(card_id: str, card_data: dict) -> CardView | None:
+async def update_card(card_id: str, card_data: dict) -> CardView | None:
     session = session_manager.session
     url = f"{BASE_PATH}/cards/{card_id}"
-    response = session.put(url=url, json=card_data)
+    response = await session.put(url=url, json=card_data)
 
     match response.status_code:
         case 200:  # OK --> Entity updated
@@ -403,18 +415,14 @@ def update_card(card_id: str, card_data: dict) -> CardView | None:
 
 
 @openapi_method("GET", "/cards/generate-escn", "getEscnList")
-async def generate_card_numbers(
-    pic: str, prefix: int = 1, numberOfESCN: int = Annotated[int, Ge(0), Le(100)]
-) -> List[uuid.UUID] | None:
+async def generate_card_numbers(pic: str, prefix: int = 1, numberOfESCN: int = Annotated[int, Ge(0), Le(100)]) -> List[uuid.UUID] | None:
     """
     Generate a list of ESCN (European Student Card Numbers) based on the provided parameters.
     """
     assert 0 <= numberOfESCN <= 100, "numberOfESCN must be between 0 and 100"
     session = session_manager.session
     url = f"{BASE_PATH}/cards/generate-escn"
-    response = await session.get(
-        url=url, params={"pic": pic, "prefix": prefix, "numberOfESCN": numberOfESCN}
-    )
+    response = await session.get(url=url, params={"pic": pic, "prefix": prefix, "numberOfESCN": numberOfESCN})
 
     match response.status_code:
         case 200:  # OK --> Entity retrieved
@@ -457,9 +465,7 @@ async def get_card_qr_code(
     elif Accept == "TEXT" or Accept == "text/plain":
         headers = {"Accept": "text/plain"}
     else:
-        raise ValueError(
-            "Accept must be either 'SVG' or 'TEXT', or MIME-Types 'image/svg+xml' or 'text/plain'"
-        )
+        raise ValueError("Accept must be either 'SVG' or 'TEXT', or MIME-Types 'image/svg+xml' or 'text/plain'")
     response = await session.get(url=url, params=params, headers=headers)
 
     match response.status_code:

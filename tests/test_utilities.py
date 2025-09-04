@@ -33,15 +33,7 @@ async def test_generate_card_numbers_zero():
 async def test_generate_card_numbers_more_than_hundred():
     with pytest.raises(Exception):
         escns = await generate_card_numbers(pic=PIC, prefix=1, numberOfESCN=101)
-    assert escns is not None
-    assert isinstance(escns, list)
-    assert len(escns) == 101
-    assert len(set(escns)) == 101  # all unique
-    for escn in escns:
-        # assert isinstance(escn, uuid.UUID)
-        assert uuid.UUID(escn)  # is valid UUID
-        assert str(escn).endswith(f"001{PIC}")
-        print(escn)
+        assert escns is None
 
 
 @pytest.mark.asyncio
