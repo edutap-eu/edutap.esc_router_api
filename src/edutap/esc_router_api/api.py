@@ -99,7 +99,7 @@ async def list_persons(
                 logger.info(f"Pages information: {data.page}")
                 if data.content is not None:
                     result.extend(data.content)
-                is_empty = data.empty
+                is_empty = data.empty is True
                 if len(result) == size:
                     is_empty = True
                     request_size = 0
@@ -128,21 +128,23 @@ async def add_person(
     data: PersonUpdateView | dict,
 ) -> PersonView | None:
     if isinstance(data, dict):
-        data = PersonUpdateView.model_validate(data)
+        input_data = PersonUpdateView.model_validate(data)
+    else:
+        input_data = data
 
     session = session_manager.session
     url = f"{BASE_PATH}/persons"
-    logger.debug(data.model_dump_json(indent=2, exclude_none=True))
+    logger.debug(input_data.model_dump_json(indent=2, exclude_none=True))
     response = await session.post(
         url=url,
-        json=data.model_dump(exclude_none=True),
+        json=input_data.model_dump(exclude_none=True),
     )
 
     match response.status_code:
         case 201:  # Created --> Student created
-            data: PersonView = PersonView.model_validate_json(response.text)
-            logger.debug(data.model_dump_json(indent=2))
-            return data
+            result_data: PersonView = PersonView.model_validate_json(response.text)
+            logger.debug(result_data.model_dump_json(indent=2))
+            return result_data
         case 401:  # Unauthorized - No valid key provided
             logger.error("Unauthorized request")
             response.raise_for_status()
@@ -188,17 +190,19 @@ async def get_person(esi: uuid.UUID) -> PersonView | None:
 @openapi_method("PUT", "/persons/{esi}")
 async def update_person(esi: uuid.UUID, data: PersonUpdateView | dict) -> PersonView | None:
     if isinstance(data, dict):
-        data = PersonUpdateView.model_validate(data)
+        input_data = PersonUpdateView.model_validate(data)
+    else:
+        input_data = data
 
     session = session_manager.session
     url = f"{BASE_PATH}/persons/{esi}"
-    response = await session.put(url=url, data=data.model_dump_json().encode("utf-8"))
+    response = await session.put(url=url, data=input_data.model_dump_json().encode("utf-8"))
 
     match response.status_code:
         case 200:  # OK --> Entity updated
-            data: PersonView = PersonView.model_validate_json(response.text)
-            print(data.model_dump_json(indent=2))
-            return data
+            result_data: PersonView = PersonView.model_validate_json(response.text)
+            print(result_data.model_dump_json(indent=2))
+            return result_data
         case 401:  # Unauthorized - No valid key provided
             logger.error("Unauthorized request")
             response.raise_for_status()
@@ -262,7 +266,7 @@ async def list_cards(
         request_size = size
 
     while request_size > 0 and not is_empty:
-        params = {
+        params: Dict[str, Any] = {
             "page": request_page,
             "size": request_size,
             "sort": sort,
@@ -274,12 +278,12 @@ async def list_cards(
         print(response)
         match response.status_code:
             case 200:
-                data: PagedResourcesCardLiteView = PagedResourcesCardLiteView.model_validate_json(response.text)
-                logger.debug(data.model_dump_json(indent=2))
-                logger.info(f"Pages information: {data.page}")
-                if data.content is not None:
-                    result.extend(data.content)
-                is_empty = data.empty is True
+                result_data: PagedResourcesCardLiteView = PagedResourcesCardLiteView.model_validate_json(response.text)
+                logger.debug(result_data.model_dump_json(indent=2))
+                logger.info(f"Pages information: {result_data.page}")
+                if result_data.content is not None:
+                    result.extend(result_data.content)
+                is_empty = result_data.empty is True
                 if len(result) == size:
                     is_empty = True
                     request_size = 0
