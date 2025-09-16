@@ -163,27 +163,27 @@ async def add_person(
 
 @openapi_method("GET", "/persons/{esi}", "findByExternalId")
 async def get_person(esi: uuid.UUID) -> PersonView | None:
-    session = session_manager.session
-    url = f"{BASE_PATH}/persons/{esi}"
-    response = await session.get(url=url)
+    async with session_manager.session as session:
+        url = f"{BASE_PATH}/persons/{esi}"
+        response = await session.get(url=url)
 
-    match response.status_code:
-        case 200:  # OK --> Entity retrieved
-            data: PersonView = PersonView.model_validate_json(response.text)
-            print(data.model_dump_json(indent=2))
-            return data
-        case 401:  # Unauthorized - No valid key provided
-            logger.error("Unauthorized request")
-            response.raise_for_status()
-        case _:
-            # 400: Bad Request --> Malformed request
-            # 401: Unauthorized --> Unauthorized PIC with this Keys
-            # 403: Forbidden --> Unauthorized Keys
-            # 404: Not Found --> Entity not found
-            # 500: Internal Server Error --> Server Issue
-            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(message.model_dump_json(indent=2))
-            response.raise_for_status()
+        match response.status_code:
+            case 200:  # OK --> Entity retrieved
+                data: PersonView = PersonView.model_validate_json(response.text)
+                print(data.model_dump_json(indent=2))
+                return data
+            case 401:  # Unauthorized - No valid key provided
+                logger.error("Unauthorized request")
+                response.raise_for_status()
+            case _:
+                # 400: Bad Request --> Malformed request
+                # 401: Unauthorized --> Unauthorized PIC with this Keys
+                # 403: Forbidden --> Unauthorized Keys
+                # 404: Not Found --> Entity not found
+                # 500: Internal Server Error --> Server Issue
+                message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                print(message.model_dump_json(indent=2))
+                response.raise_for_status()
     return None
 
 
