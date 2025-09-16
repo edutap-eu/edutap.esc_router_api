@@ -6,6 +6,7 @@ from pydantic_settings import SettingsConfigDict
 # from requests.adapters import HTTPAdapter
 from typing import Literal
 
+import atexit
 import threading
 
 
@@ -75,21 +76,27 @@ class Settings(BaseSettings):
 class SessionManager:
     """Manages the session to the ESC Router API and provides helper methods."""
 
-    def _make_session(self) -> AsyncClient:
+    def _make_client(self) -> AsyncClient:
         settings = Settings()
-        session = AsyncClient(
+        client = AsyncClient(
             # auth=f"Bearer {settings.api_key}",
             base_url=settings.base_url,
             headers={"Authorization": f"Bearer {settings.api_key}"},
             http2=True,
         )
-        return session
+        atexit.register(self._cleanup_client)
+        return client
+
+    def _cleanup_client(self):
+        if getattr(_THREADLOCAL, "client", None) is not None:
+            _THREADLOCAL.client.aclose()
+            _THREADLOCAL.client = None
 
     @property
-    def session(self) -> AsyncClient:
-        if getattr(_THREADLOCAL, "session", None) is None:
-            _THREADLOCAL.session = self._make_session()
-        return _THREADLOCAL.session  # type: ignore
+    def client(self) -> AsyncClient:
+        if getattr(_THREADLOCAL, "client", None) is None:
+            _THREADLOCAL.client = self._make_client()
+        return _THREADLOCAL.client  # type: ignore
 
 
 session_manager = SessionManager()
