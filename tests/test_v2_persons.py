@@ -63,7 +63,7 @@ async def test_add_person():
                     print("Bad request")
 
 
-@pytest.mark.order(1)
+@pytest.mark.order(3)
 @pytest.mark.asyncio
 async def test_get_all_persons():
     persons = await list_persons(size=0)

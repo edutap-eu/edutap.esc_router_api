@@ -1,7 +1,5 @@
 from edutap.esc_router_api.session import Settings
 
-import pytest
-
 
 def test_settings():
     settings = Settings()

@@ -59,6 +59,7 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/edutap"]
+
 [tool.mypy]
 mypy_path = "./src:./tests"
 explicit_package_bases = true
@@ -117,7 +118,7 @@ count = true
 ignore-words-list = "discreet,"
 skip = "*.json,*.csv,tests/generate_data.py"
 # skip_files = [
-#     "tests/data/*.*", 
+#     "tests/data/*.*",
 #     "tests/generate_data.py",
 # ]
 

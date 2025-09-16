@@ -69,57 +69,65 @@ async def list_persons(
     size: int = 10,
     search: str | None = None,
 ) -> list | None:
-    session = session_manager.session
-    url = f"{BASE_PATH}/persons"
+    """
+    List all persons with pagination support.
+
+    :param sort: Field to sort by (e.g., "fullName", "identifier").
+    :param direction: Sort direction ("ASC" or "DESC").
+    :param page: Page number (0-indexed).
+    :param size: Number of items per page (default 10, max 100, size == 0 --> all).
+    """
     result: List[PersonLiteView] = []
-    is_empty: bool = False
+    async with session_manager.session as session:
+        url = f"{BASE_PATH}/persons"
+        is_empty: bool = False
 
-    request_size: int = 10
-    request_page: int = page
-    if size == 0 or size > 10:
-        request_size = 10
-    else:
-        request_size = size
+        request_size: int = 10
+        request_page: int = page
+        if size == 0 or size > 10:
+            request_size = 10
+        else:
+            request_size = size
 
-    while request_size > 0 and not is_empty:
-        params: Dict[str, Any] = {
-            "page": request_page,
-            "size": request_size,
-            "sort": sort,
-            "direction": direction,
-        }
-        if search:
-            params["search"] = search
-        response = await session.get(url=url, params=params)
-        print(response)
-        match response.status_code:
-            case 200:
-                data: PagedResourcesPersonLiteView = PagedResourcesPersonLiteView.model_validate_json(response.text)
-                logger.debug(data.model_dump_json(indent=2))
-                logger.info(f"Pages information: {data.page}")
-                if data.content is not None:
-                    result.extend(data.content)
-                is_empty = data.empty is True
-                if len(result) == size:
-                    is_empty = True
-                    request_size = 0
-                elif size == 0:
-                    request_page += 1
-                elif len(result) < len(result) + 10 <= size:
-                    request_page += 1
-                elif len(result) + 10 > size:
-                    request_size = size - len(result)
-                    request_page += 1
-            case 401:  # Unauthorized - No valid key provided
-                logger.error("Unauthorized request")
-                response.raise_for_status()
-            case _:
-                # 400: Bad Request --> Malformed request
-                # 401: Unauthorized --> Unauthorized PIC with this Keys
-                # 500: Internal Server Error --> Server Issue
-                message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-                logger.error(message.model_dump_json(indent=2))
-                response.raise_for_status()
+        while request_size > 0 and not is_empty:
+            params: Dict[str, Any] = {
+                "page": request_page,
+                "size": request_size,
+                "sort": sort,
+                "direction": direction,
+            }
+            if search:
+                params["search"] = search
+            response = await session.get(url=url, params=params)
+            print(response)
+            match response.status_code:
+                case 200:
+                    data: PagedResourcesPersonLiteView = PagedResourcesPersonLiteView.model_validate_json(response.text)
+                    logger.debug(data.model_dump_json(indent=2))
+                    logger.info(f"Pages information: {data.page}")
+                    if data.content is not None:
+                        result.extend(data.content)
+                    is_empty = data.empty is True
+                    if len(result) == size:
+                        is_empty = True
+                        request_size = 0
+                    elif size == 0:
+                        request_page += 1
+                    elif len(result) < len(result) + 10 <= size:
+                        request_page += 1
+                    elif len(result) + 10 > size:
+                        request_size = size - len(result)
+                        request_page += 1
+                case 401:  # Unauthorized - No valid key provided
+                    logger.error("Unauthorized request")
+                    response.raise_for_status()
+                case _:
+                    # 400: Bad Request --> Malformed request
+                    # 401: Unauthorized --> Unauthorized PIC with this Keys
+                    # 500: Internal Server Error --> Server Issue
+                    message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                    logger.error(message.model_dump_json(indent=2))
+                    response.raise_for_status()
     return result
 
 
@@ -132,32 +140,32 @@ async def add_person(
     else:
         input_data = data
 
-    session = session_manager.session
-    url = f"{BASE_PATH}/persons"
-    logger.debug(input_data.model_dump_json(indent=2, exclude_none=True))
-    response = await session.post(
-        url=url,
-        json=input_data.model_dump(exclude_none=True),
-    )
+    async with session_manager.session as session:
+        url = f"{BASE_PATH}/persons"
+        logger.debug(input_data.model_dump_json(indent=2, exclude_none=True))
+        response = await session.post(
+            url=url,
+            json=input_data.model_dump(exclude_none=True),
+        )
 
-    match response.status_code:
-        case 201:  # Created --> Student created
-            result_data: PersonView = PersonView.model_validate_json(response.text)
-            logger.debug(result_data.model_dump_json(indent=2))
-            return result_data
-        case 401:  # Unauthorized - No valid key provided
-            logger.error("Unauthorized request")
-            response.raise_for_status()
-        case _:
-            # 400: Bad Request --> Malformed request
-            # 401: Unauthorized --> Unauthorized PIC with this Keys
-            # 403: Forbidden --> Unauthorized Keys
-            # 409: Conflict --> European Student Identifier is already used
-            # 410: Gone --> The Student with this ESI has anonymized is account
-            # 500:  # Internal Server Error --> Server Issue
-            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            logger.error(message.model_dump_json(indent=2))
-            response.raise_for_status()
+        match response.status_code:
+            case 201:  # Created --> Student created
+                result_data: PersonView = PersonView.model_validate_json(response.text)
+                logger.debug(result_data.model_dump_json(indent=2))
+                return result_data
+            case 401:  # Unauthorized - No valid key provided
+                logger.error("Unauthorized request")
+                response.raise_for_status()
+            case _:
+                # 400: Bad Request --> Malformed request
+                # 401: Unauthorized --> Unauthorized PIC with this Keys
+                # 403: Forbidden --> Unauthorized Keys
+                # 409: Conflict --> European Student Identifier is already used
+                # 410: Gone --> The Student with this ESI has anonymized is account
+                # 500:  # Internal Server Error --> Server Issue
+                message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                logger.error(message.model_dump_json(indent=2))
+                response.raise_for_status()
     return None
 
 
@@ -194,51 +202,53 @@ async def update_person(esi: uuid.UUID, data: PersonUpdateView | dict) -> Person
     else:
         input_data = data
 
-    session = session_manager.session
-    url = f"{BASE_PATH}/persons/{esi}"
-    response = await session.put(url=url, data=input_data.model_dump_json().encode("utf-8"))
+    async with session_manager.session as session:
+        url = f"{BASE_PATH}/persons/{esi}"
+        response = await session.put(
+            url=url,
+            json=input_data.model_dump(exclude_none=True),
+        )
 
-    match response.status_code:
-        case 200:  # OK --> Entity updated
-            result_data: PersonView = PersonView.model_validate_json(response.text)
-            print(result_data.model_dump_json(indent=2))
-            return result_data
-        case 401:  # Unauthorized - No valid key provided
-            logger.error("Unauthorized request")
-            response.raise_for_status()
-        case _:
-            # 400: Bad Request --> Malformed request
-            # 401: Unauthorized --> Unauthorized PIC with this Keys
-            # 403: Forbidden --> Unauthorized Keys
-            # 404: Not Found --> Entity not found
-            # 500: Internal Server Error --> Server Issue
-            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(message.model_dump_json(indent=2))
-            response.raise_for_status()
+        match response.status_code:
+            case 200:  # OK --> Entity updated
+                result_data: PersonView = PersonView.model_validate_json(response.text)
+                print(result_data.model_dump_json(indent=2))
+                return result_data
+            case 401:  # Unauthorized - No valid key provided
+                logger.error("Unauthorized request")
+                response.raise_for_status()
+            case _:
+                # 400: Bad Request --> Malformed request
+                # 401: Unauthorized --> Unauthorized PIC with this Keys
+                # 403: Forbidden --> Unauthorized Keys
+                # 404: Not Found --> Entity not found
+                # 500: Internal Server Error --> Server Issue
+                message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                print(message.model_dump_json(indent=2))
+                response.raise_for_status()
     return None
 
 
 @openapi_method("DELETE", "/persons/{esi}")
 async def delete_person(esi: uuid.UUID) -> bool:
-    session = session_manager.session
-    url = f"{BASE_PATH}/persons/{esi}"
-    response = await session.delete(url=url)
+    async with session_manager.session as session:
+        url = f"{BASE_PATH}/persons/{esi}"
+        response = await session.delete(url=url)
 
-    match response.status_code:
-        case 204:  # No Content --> Entity deleted
-            return True
-        case 401:  # Unauthorized - No valid key provided
-            logger.error("Unauthorized request")
-            response.raise_for_status()
-        case _:
-            # 400: Bad Request --> Malformed request
-            # 401: Unauthorized --> Unauthorized PIC with this Keys
-            # 403: Forbidden --> Unauthorized Keys
-            # 404: Not Found --> Entity not found
-            # 500: Internal Server Error --> Server Issue
-            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(message.model_dump_json(indent=2))
-            response.raise_for_status()
+        match response.status_code:
+            case 204:  # No Content --> Entity deleted
+                return True
+            case 401:  # Unauthorized - No valid key provided
+                logger.error("Unauthorized request")
+                response.raise_for_status()
+            case _:
+                # 400: Bad Request --> Malformed request
+                # 403: Forbidden --> Unauthorized Keys
+                # 404: Not Found --> Entity not found
+                # 500: Internal Server Error --> Server Issue
+                message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                print(message.model_dump_json(indent=2))
+                response.raise_for_status()
     return False
 
 
@@ -253,57 +263,57 @@ async def list_cards(
     size: int = 10,
     search: str | None = None,
 ) -> List[CardLiteView] | None:
-    session = session_manager.session
-    url = f"{BASE_PATH}/cards"
     result: List[CardLiteView] = []
-    is_empty: bool = False
+    async with session_manager.session as session:
+        url = f"{BASE_PATH}/cards"
+        is_empty: bool = False
 
-    request_size: int = 10
-    request_page: int = page
-    if size == 0 or size > 10:
-        request_size = 10
-    else:
-        request_size = size
+        request_size: int = 10
+        request_page: int = page
+        if size == 0 or size > 10:
+            request_size = 10
+        else:
+            request_size = size
 
-    while request_size > 0 and not is_empty:
-        params: Dict[str, Any] = {
-            "page": request_page,
-            "size": request_size,
-            "sort": sort,
-            "direction": direction,
-        }
-        if search:
-            params["search"] = search
-        response = await session.get(url=url, params=params)
-        print(response)
-        match response.status_code:
-            case 200:
-                result_data: PagedResourcesCardLiteView = PagedResourcesCardLiteView.model_validate_json(response.text)
-                logger.debug(result_data.model_dump_json(indent=2))
-                logger.info(f"Pages information: {result_data.page}")
-                if result_data.content is not None:
-                    result.extend(result_data.content)
-                is_empty = result_data.empty is True
-                if len(result) == size:
-                    is_empty = True
-                    request_size = 0
-                elif size == 0:
-                    request_page += 1
-                elif len(result) < len(result) + 10 <= size:
-                    request_page += 1
-                elif len(result) + 10 > size:
-                    request_size = size - len(result)
-                    request_page += 1
-            case 401:  # Unauthorized - No valid key provided
-                logger.error("Unauthorized request")
-                response.raise_for_status()
-            case _:
-                # 400: Bad Request --> Malformed request
-                # 401: Unauthorized --> Unauthorized PIC with this Keys
-                # 500: Internal Server Error --> Server Issue
-                message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-                logger.error(message.model_dump_json(indent=2))
-                response.raise_for_status()
+        while request_size > 0 and not is_empty:
+            params: Dict[str, Any] = {
+                "page": request_page,
+                "size": request_size,
+                "sort": sort,
+                "direction": direction,
+            }
+            if search:
+                params["search"] = search
+            response = await session.get(url=url, params=params)
+            print(response)
+            match response.status_code:
+                case 200:
+                    result_data: PagedResourcesCardLiteView = PagedResourcesCardLiteView.model_validate_json(response.text)
+                    logger.debug(result_data.model_dump_json(indent=2))
+                    logger.info(f"Pages information: {result_data.page}")
+                    if result_data.content is not None:
+                        result.extend(result_data.content)
+                    is_empty = result_data.empty is True
+                    if len(result) == size:
+                        is_empty = True
+                        request_size = 0
+                    elif size == 0:
+                        request_page += 1
+                    elif len(result) < len(result) + 10 <= size:
+                        request_page += 1
+                    elif len(result) + 10 > size:
+                        request_size = size - len(result)
+                        request_page += 1
+                case 401:  # Unauthorized - No valid key provided
+                    logger.error("Unauthorized request")
+                    response.raise_for_status()
+                case _:
+                    # 400: Bad Request --> Malformed request
+                    # 401: Unauthorized --> Unauthorized PIC with this Keys
+                    # 500: Internal Server Error --> Server Issue
+                    message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                    logger.error(message.model_dump_json(indent=2))
+                    response.raise_for_status()
     return result
 
 
@@ -315,104 +325,104 @@ async def add_card(esi: str, data: CardUpdateView | dict) -> CardView | None:
     else:
         input_data = data
 
-    session = session_manager.session
-    url = f"{BASE_PATH}/persons/{esi}/cards"
-    response = await session.post(url=url, json=input_data.model_dump())
+    async with session_manager.session as session:
+        url = f"{BASE_PATH}/persons/{esi}/cards"
+        response = await session.post(url=url, json=input_data.model_dump())
 
-    match response.status_code:
-        case 201:  # Created --> Entity created
-            result_data: CardView = CardView.model_validate_json(response.text)
-            print(result_data.model_dump_json(indent=2))
-            return result_data
-        case 401:  # Unauthorized - No valid key provided
-            logger.error("Unauthorized request")
-            response.raise_for_status()
-        case _:
-            # 400: Bad Request --> Malformed request
-            # 401: Unauthorized --> Unauthorized PIC with this Keys
-            # 403: Forbidden --> Unauthorized Keys
-            # 404: Not Found --> Entity not found
-            # 500: Internal Server Error --> Server Issue
-            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(message.model_dump_json(indent=2))
-            response.raise_for_status()
+        match response.status_code:
+            case 201:  # Created --> Entity created
+                result_data: CardView = CardView.model_validate_json(response.text)
+                print(result_data.model_dump_json(indent=2))
+                return result_data
+            case 401:  # Unauthorized - No valid key provided
+                logger.error("Unauthorized request")
+                response.raise_for_status()
+            case _:
+                # 400: Bad Request --> Malformed request
+                # 401: Unauthorized --> Unauthorized PIC with this Keys
+                # 403: Forbidden --> Unauthorized Keys
+                # 404: Not Found --> Entity not found
+                # 500: Internal Server Error --> Server Issue
+                message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                print(message.model_dump_json(indent=2))
+                response.raise_for_status()
     return None
 
 
 @openapi_method("GET", "/cards/{cardId}", "findById")
 async def get_card(card_id: str) -> CardView | None:
-    session = session_manager.session
-    url = f"{BASE_PATH}/cards/{card_id}"
-    response = await session.get(url=url)
+    async with session_manager.session as session:
+        url = f"{BASE_PATH}/cards/{card_id}"
+        response = await session.get(url=url)
 
-    match response.status_code:
-        case 200:  # OK --> Entity retrieved
-            data: CardView = CardView.model_validate_json(response.text)
-            print(data.model_dump_json(indent=2))
-            return data
-        case 401:  # Unauthorized - No valid key provided
-            logger.error("Unauthorized request")
-            response.raise_for_status()
-        case _:
-            # 400: Bad Request --> Malformed request
-            # 401: Unauthorized --> Unauthorized PIC with this Keys
-            # 403: Forbidden --> Unauthorized Keys
-            # 404: Not Found --> Entity not found
-            # 500: Internal Server Error --> Server Issue
-            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(message.model_dump_json(indent=2))
-            response.raise_for_status()
+        match response.status_code:
+            case 200:  # OK --> Entity retrieved
+                data: CardView = CardView.model_validate_json(response.text)
+                print(data.model_dump_json(indent=2))
+                return data
+            case 401:  # Unauthorized - No valid key provided
+                logger.error("Unauthorized request")
+                response.raise_for_status()
+            case _:
+                # 400: Bad Request --> Malformed request
+                # 401: Unauthorized --> Unauthorized PIC with this Keys
+                # 403: Forbidden --> Unauthorized Keys
+                # 404: Not Found --> Entity not found
+                # 500: Internal Server Error --> Server Issue
+                message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                print(message.model_dump_json(indent=2))
+                response.raise_for_status()
     return None
 
 
 @openapi_method("DELETE", "/cards/{cardId}", "deleteById")
 async def delete_card(card_id: str) -> bool:
-    session = session_manager.session
-    url = f"{BASE_PATH}/cards/{card_id}"
-    response = await session.delete(url=url)
+    async with session_manager.session as session:
+        url = f"{BASE_PATH}/cards/{card_id}"
+        response = await session.delete(url=url)
 
-    match response.status_code:
-        case 204:  # No Content --> Entity deleted
-            print(f"Card with ID {card_id} deleted successfully.")
-            return True
-        case 401:  # Unauthorized - No valid key provided
-            logger.error("Unauthorized request")
-            response.raise_for_status()
-        case _:
-            # 400: Bad Request --> Malformed request
-            # 401: Unauthorized --> Unauthorized PIC with this Keys
-            # 403: Forbidden --> Unauthorized Keys
-            # 404: Not Found --> Entity not found
-            # 500: Internal Server Error --> Server Issue
-            data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(data.model_dump_json(indent=2))
-            response.raise_for_status()
+        match response.status_code:
+            case 204:  # No Content --> Entity deleted
+                print(f"Card with ID {card_id} deleted successfully.")
+                return True
+            case 401:  # Unauthorized - No valid key provided
+                logger.error("Unauthorized request")
+                response.raise_for_status()
+            case _:
+                # 400: Bad Request --> Malformed request
+                # 401: Unauthorized --> Unauthorized PIC with this Keys
+                # 403: Forbidden --> Unauthorized Keys
+                # 404: Not Found --> Entity not found
+                # 500: Internal Server Error --> Server Issue
+                data: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                print(data.model_dump_json(indent=2))
+                response.raise_for_status()
     return False
 
 
 @openapi_method("PUT", "/cards/{cardId}", "updateById")
 async def update_card(card_id: str, card_data: dict) -> CardView | None:
-    session = session_manager.session
-    url = f"{BASE_PATH}/cards/{card_id}"
-    response = await session.put(url=url, json=card_data)
+    async with session_manager.session as session:
+        url = f"{BASE_PATH}/cards/{card_id}"
+        response = await session.put(url=url, json=card_data)
 
-    match response.status_code:
-        case 200:  # OK --> Entity updated
-            data: CardView = CardView.model_validate_json(response.text)
-            logger.debug(data.model_dump_json(indent=2))
-            return data
-        case 401:  # Unauthorized - No valid key provided
-            logger.error("Unauthorized request")
-            response.raise_for_status()
-        case _:
-            # 400: Bad Request --> Malformed request
-            # 401: Unauthorized --> Unauthorized PIC with this Keys
-            # 403: Forbidden --> Unauthorized Keys
-            # 404: Not Found --> Entity not found
-            # 500: Internal Server Error --> Server Issue
-            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(message.model_dump_json(indent=2))
-            response.raise_for_status()
+        match response.status_code:
+            case 200:  # OK --> Entity updated
+                data: CardView = CardView.model_validate_json(response.text)
+                logger.debug(data.model_dump_json(indent=2))
+                return data
+            case 401:  # Unauthorized - No valid key provided
+                logger.error("Unauthorized request")
+                response.raise_for_status()
+            case _:
+                # 400: Bad Request --> Malformed request
+                # 401: Unauthorized --> Unauthorized PIC with this Keys
+                # 403: Forbidden --> Unauthorized Keys
+                # 404: Not Found --> Entity not found
+                # 500: Internal Server Error --> Server Issue
+                message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                print(message.model_dump_json(indent=2))
+                response.raise_for_status()
     return None
 
 
@@ -425,28 +435,28 @@ async def generate_card_numbers(pic: str, prefix: int = 1, numberOfESCN: Annotat
     Generate a list of ESCN (European Student Card Numbers) based on the provided parameters.
     """
     assert 0 <= numberOfESCN <= 100, "numberOfESCN must be between 0 and 100"
-    session = session_manager.session
-    url = f"{BASE_PATH}/cards/generate-escn"
-    response = await session.get(url=url, params={"pic": pic, "prefix": prefix, "numberOfESCN": numberOfESCN})
+    async with session_manager.session as session:
+        url = f"{BASE_PATH}/cards/generate-escn"
+        response = await session.get(url=url, params={"pic": pic, "prefix": prefix, "numberOfESCN": numberOfESCN})
 
-    match response.status_code:
-        case 200:  # OK --> Entity retrieved
-            data: list[str] = json.loads(response.text)
-            logger.debug(f"Generated ESCN: {data}")
-            result = [uuid.UUID(escn) for escn in data]
-            return result
-        case 401:  # Unauthorized - No valid key provided
-            logger.error("Unauthorized request")
-            response.raise_for_status()
-        case _:
-            # 400: Bad Request --> Malformed request
-            # 403: Forbidden --> Unauthorized Keys
-            # 404: Not Found --> Entity not found
-            # 500: Internal Server Error --> Server Issue
-            logger.error(response)
-            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            logger.error(message.model_dump_json(indent=2))
-            response.raise_for_status()
+        match response.status_code:
+            case 200:  # OK --> Entity retrieved
+                data: list[str] = json.loads(response.text)
+                logger.debug(f"Generated ESCN: {data}")
+                result = [uuid.UUID(escn) for escn in data]
+                return result
+            case 401:  # Unauthorized - No valid key provided
+                logger.error("Unauthorized request")
+                response.raise_for_status()
+            case _:
+                # 400: Bad Request --> Malformed request
+                # 403: Forbidden --> Unauthorized Keys
+                # 404: Not Found --> Entity not found
+                # 500: Internal Server Error --> Server Issue
+                logger.error(response)
+                message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                logger.error(message.model_dump_json(indent=2))
+                response.raise_for_status()
     return None
 
 
@@ -458,61 +468,80 @@ async def get_card_qr_code(
     size: Literal["XS", "S", "M"] = "S",
     Accept: Literal["SVG", "TEXT", "image/svg+xml", "text/plain"] = "SVG",
 ) -> bytes | None:
-    session = session_manager.session
-    url = f"{BASE_PATH}/cards/{escn}/qr"
-    params = {
-        "orientation": orientation,
-        "colours": colours,
-        "size": size,
-    }
-    if Accept == "SVG" or Accept == "image/svg+xml":
-        headers = {"Accept": "image/svg+xml"}
-    elif Accept == "TEXT" or Accept == "text/plain":
-        headers = {"Accept": "text/plain"}
-    else:
-        raise ValueError("Accept must be either 'SVG' or 'TEXT', or MIME-Types 'image/svg+xml' or 'text/plain'")
-    response = await session.get(url=url, params=params, headers=headers)
+    """
+    Retrieve the QR code for a specific card in the desired format and customization options.
 
-    match response.status_code:
-        case 200:  # OK --> Entity retrieved
-            data: bytes = response.content
-            return data
-        case 401:  # Unauthorized - No valid key provided
-            logger.error("Unauthorized request")
-            response.raise_for_status()
-        case _:
-            # 400: Bad Request --> Malformed request
-            # 401: Unauthorized --> Unauthorized PIC with this Keys
-            # 403: Forbidden --> Unauthorized Keys
-            # 404: Not Found --> Entity not found
-            # 500: Internal Server Error --> Server Issue
-            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            print(message.model_dump_json(indent=2))
-            response.raise_for_status()
+    :param escn: The ESCN of the card to retrieve the QR code for.
+    :param orientation: Orientation of the QR code, either "vertical" or "horizontal".
+    :param colours: Colour scheme of the QR code, either "normal" or "inverted".
+    :param size: Size of the QR code, either "XS", "S", or "M".
+    :param Accept: Desired format of the QR code, either "SVG" or "TEXT" (MIME types "image/svg+xml" or "text/plain").
+    :return: QR code data in the specified format as bytes, or None if not found.
+
+    :raises: HTTPError if the request fails due to client or server errors.
+    """
+    async with session_manager.session as session:
+        url = f"{BASE_PATH}/cards/{escn}/qr"
+        params = {
+            "orientation": orientation,
+            "colours": colours,
+            "size": size,
+        }
+        if Accept == "SVG" or Accept == "image/svg+xml":
+            headers = {"Accept": "image/svg+xml"}
+        elif Accept == "TEXT" or Accept == "text/plain":
+            headers = {"Accept": "text/plain"}
+        else:
+            raise ValueError("Accept must be either 'SVG' or 'TEXT', or MIME-Types 'image/svg+xml' or 'text/plain'")
+        response = await session.get(url=url, params=params, headers=headers)
+
+        match response.status_code:
+            case 200:  # OK --> Entity retrieved
+                data: bytes = response.content
+                return data
+            case 401:  # Unauthorized - No valid key provided
+                logger.error("Unauthorized request")
+                response.raise_for_status()
+            case _:
+                # 400: Bad Request --> Malformed request
+                # 401: Unauthorized --> Unauthorized PIC with this Keys
+                # 403: Forbidden --> Unauthorized Keys
+                # 404: Not Found --> Entity not found
+                # 500: Internal Server Error --> Server Issue
+                message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                print(message.model_dump_json(indent=2))
+                response.raise_for_status()
     return None
 
 
 @openapi_method("GET", "/cards/{escn}/status", "getCardStatus")
 async def get_card_status(escn: str) -> CardStatusView | None:
-    session = session_manager.session
-    url = f"{BASE_PATH}/cards/{escn}/status"
-    response = await session.get(url=url)
-    # response = httpx.get(url=url)  # To raise HTTPError in tests
+    """
+    Retrieve the status of a specific card using its ESCN (European Student Card Number).
+    :param escn: The ESCN of the card to retrieve the status for.
+    :return: CardStatusView object containing the status information of the card, or None if not found.
 
-    match response.status_code:
-        case 200:  # OK --> Entity retrieved
-            data: CardStatusView = CardStatusView.model_validate_json(response.text)
-            logger.debug(data.model_dump_json(indent=2))
-            return data
-        case 401:  # Unauthorized - No valid key provided
-            logger.error("Unauthorized request")
-            response.raise_for_status()
-        case _:
-            # 400: Bad Request --> Malformed request
-            # 403: Forbidden --> Unauthorized Keys
-            # 404: Not Found --> Entity not found
-            # 500: Internal Server Error --> Server Issue
-            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
-            logger.error(message.model_dump_json(indent=2))
-            response.raise_for_status()
+    :raises: HTTPError if the request fails due to client or server errors.
+    """
+    async with session_manager.session as session:
+        url = f"{BASE_PATH}/cards/{escn}/status"
+        response = await session.get(url=url)
+        # response = httpx.get(url=url)  # To raise HTTPError in tests
+
+        match response.status_code:
+            case 200:  # OK --> Entity retrieved
+                data: CardStatusView = CardStatusView.model_validate_json(response.text)
+                logger.debug(data.model_dump_json(indent=2))
+                return data
+            case 401:  # Unauthorized - No valid key provided
+                logger.error("Unauthorized request")
+                response.raise_for_status()
+            case _:
+                # 400: Bad Request --> Malformed request
+                # 403: Forbidden --> Unauthorized Keys
+                # 404: Not Found --> Entity not found
+                # 500: Internal Server Error --> Server Issue
+                message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+                logger.error(message.model_dump_json(indent=2))
+                response.raise_for_status()
     return None
