@@ -170,7 +170,7 @@ async def add_person(
     return None
 
 
-@openapi_method("GET", "/persons/{esi}", "findByExternalId")
+@openapi_method("GET", BASE_PATH + "/persons/{esi}", "findByExternalId")
 async def get_person(esi: uuid.UUID) -> PersonView | None:
     client: AsyncClient = session_manager.client
     url = f"{BASE_PATH}/persons/{esi}"
@@ -196,7 +196,7 @@ async def get_person(esi: uuid.UUID) -> PersonView | None:
     return None
 
 
-@openapi_method("PUT", "/persons/{esi}")
+@openapi_method("PUT", BASE_PATH + "/persons/{esi}", "update")
 async def update_person(esi: uuid.UUID, data: PersonUpdateView | dict) -> PersonView | None:
     if isinstance(data, dict):
         input_data = PersonUpdateView.model_validate(data)
@@ -230,7 +230,7 @@ async def update_person(esi: uuid.UUID, data: PersonUpdateView | dict) -> Person
     return None
 
 
-@openapi_method("DELETE", "/persons/{esi}")
+@openapi_method("DELETE", BASE_PATH + "/persons/{esi}", "delete")
 async def delete_person(esi: uuid.UUID) -> bool:
     client: AsyncClient = session_manager.client
     url = f"{BASE_PATH}/persons/{esi}"
@@ -256,7 +256,7 @@ async def delete_person(esi: uuid.UUID) -> bool:
 # --- Card Management --------------------------------------------------------
 
 
-@openapi_method("GET", "/cards", "findAll_1'")
+@openapi_method("GET", BASE_PATH + "/cards", "findAll_1")
 async def list_cards(
     sort: Literal["ESCN"] | None = None,
     direction: Literal["ASC", "DESC"] | None = None,
@@ -319,8 +319,8 @@ async def list_cards(
     return result
 
 
-@openapi_method("POST", "/persons/{esi}/cards", "createCard")
-async def add_card(esi: str, data: CardUpdateView | dict) -> CardView | None:
+@openapi_method("POST", BASE_PATH + "/cards", "create_1")
+async def add_card(data: CardUpdateView | dict) -> CardView | None:
     input_data: CardUpdateView
     if isinstance(data, dict):
         input_data = CardUpdateView.model_validate(data)
@@ -328,7 +328,7 @@ async def add_card(esi: str, data: CardUpdateView | dict) -> CardView | None:
         input_data = data
 
     client: AsyncClient = session_manager.client
-    url = f"{BASE_PATH}/persons/{esi}/cards"
+    url = f"{BASE_PATH}/cards"
     response = await client.post(url=url, json=input_data.model_dump())
 
     match response.status_code:
@@ -351,10 +351,10 @@ async def add_card(esi: str, data: CardUpdateView | dict) -> CardView | None:
     return None
 
 
-@openapi_method("GET", "/cards/{cardId}", "findById")
-async def get_card(card_id: str) -> CardView | None:
+@openapi_method("GET", BASE_PATH + "/cards/{escn}", "findByExternalId_1")
+async def get_card(escn: str) -> CardView | None:
     client: AsyncClient = session_manager.client
-    url = f"{BASE_PATH}/cards/{card_id}"
+    url = f"{BASE_PATH}/cards/{escn}"
     response = await client.get(url=url)
 
     match response.status_code:
@@ -377,15 +377,15 @@ async def get_card(card_id: str) -> CardView | None:
     return None
 
 
-@openapi_method("DELETE", "/cards/{cardId}", "deleteById")
-async def delete_card(card_id: str) -> bool:
+@openapi_method("DELETE", BASE_PATH + "/cards/{escn}", "delete_1")
+async def delete_card(escn: str) -> bool:
     client: AsyncClient = session_manager.client
-    url = f"{BASE_PATH}/cards/{card_id}"
+    url = f"{BASE_PATH}/cards/{escn}"
     response = await client.delete(url=url)
 
     match response.status_code:
         case 204:  # No Content --> Entity deleted
-            print(f"Card with ID {card_id} deleted successfully.")
+            print(f"Card with ID {escn} deleted successfully.")
             return True
         case 401:  # Unauthorized - No valid key provided
             logger.error("Unauthorized request")
@@ -402,10 +402,10 @@ async def delete_card(card_id: str) -> bool:
     return False
 
 
-@openapi_method("PUT", "/cards/{cardId}", "updateById")
-async def update_card(card_id: str, card_data: dict) -> CardView | None:
+@openapi_method("PUT", BASE_PATH + "/cards/{escn}", "update_1")
+async def update_card(escn: str, card_data: dict) -> CardView | None:
     client: AsyncClient = session_manager.client
-    url = f"{BASE_PATH}/cards/{card_id}"
+    url = f"{BASE_PATH}/cards/{escn}"
     response = await client.put(url=url, json=card_data)
 
     match response.status_code:
@@ -431,7 +431,7 @@ async def update_card(card_id: str, card_data: dict) -> CardView | None:
 # --- Card Utilities ---------------------------------------------------------
 
 
-@openapi_method("GET", "/cards/generate-escn", "getEscnList")
+@openapi_method("GET", BASE_PATH + "/cards/generate-escn", "getEscnList")
 async def generate_card_numbers(pic: str, prefix: int = 1, numberOfESCN: Annotated[int, Ge(0), Le(100)] = 10) -> List[uuid.UUID] | None:
     """
     Generate a list of ESCN (European Student Card Numbers) based on the provided parameters.
@@ -463,7 +463,7 @@ async def generate_card_numbers(pic: str, prefix: int = 1, numberOfESCN: Annotat
     return None
 
 
-@openapi_method("GET", "/cards/{cardId}/qr", "getCardQrCode")
+@openapi_method("GET", BASE_PATH + "/cards/{escn}/qr", "getQRCode")
 async def get_card_qr_code(
     escn: uuid.UUID,
     orientation: Literal["vertical", "horizontal"] = "horizontal",
@@ -518,7 +518,7 @@ async def get_card_qr_code(
     return None
 
 
-@openapi_method("GET", "/cards/{escn}/status", "getCardStatus")
+@openapi_method("GET", BASE_PATH + "/cards/{escn}/status", "status")
 async def get_card_status(escn: str) -> CardStatusView | None:
     """
     Retrieve the status of a specific card using its ESCN (European Student Card Number).
