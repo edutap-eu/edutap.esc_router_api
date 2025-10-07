@@ -252,6 +252,77 @@ async def delete_person(esi: uuid.UUID) -> bool:
             response.raise_for_status()
     return False
 
+# --- Person Image Management -----------------------------------------------
+
+@openapi_method("GET", BASE_PATH + "/organisations/{id}/person/{esi}/picture", "getStudentPicture")
+async def get_person_image(esi: uuid.UUID) -> bytes | None:
+    client: AsyncClient = session_manager.client
+    url = f"{BASE_PATH}/organisations/{id}/person/{esi}/picture"
+    response = await client.get(url=url)
+
+    match response.status_code:
+        case 200:  # OK --> Entity retrieved
+            data: bytes = response.content
+            return data
+        case 401:  # Unauthorized - No valid key provided
+            logger.error("Unauthorized request")
+            response.raise_for_status()
+        case _:
+            # 400: Bad Request --> Malformed request
+            # 403: Forbidden --> Unauthorized Keys
+            # 404: Not Found --> Entity not found
+            # 500: Internal Server Error --> Server Issue
+            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            print(message.model_dump_json(indent=2))
+            response.raise_for_status()
+    return None
+
+
+@openapi_method("POST", BASE_PATH + "/organisations/{id}/person/{esi}/picture", "uploadStudentPicture")
+async def add_person_image(esi: uuid.UUID, image_data: bytes, content_type: str = "image/jpeg") -> bool:
+    client: AsyncClient = session_manager.client
+    url = f"{BASE_PATH}/organisations/{id}/person/{esi}/picture"
+    headers = {"Content-Type": content_type}
+    response = await client.post(url=url, headers=headers, data=image_data)
+
+    match response.status_code:
+        case 204:  # No Content --> Entity updated
+            return True
+        case 401:  # Unauthorized - No valid key provided
+            logger.error("Unauthorized request")
+            response.raise_for_status()
+        case _:
+            # 400: Bad Request --> Malformed request
+            # 403: Forbidden --> Unauthorized Keys
+            # 404: Not Found --> Entity not found
+            # 500: Internal Server Error --> Server Issue
+            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            print(message.model_dump_json(indent=2))
+            response.raise_for_status()
+    return False
+
+@openapi_method("DELETE", BASE_PATH + "/organisations/{id}/person/{esi}/picture", "deleteStudentPicture")
+async def delete_person_image(esi: uuid.UUID) -> bool:
+    client: AsyncClient = session_manager.client
+    url = f"{BASE_PATH}/organisations/{id}/person/{esi}/picture"
+    response = await client.delete(url=url)
+
+    match response.status_code:
+        case 204:  # No Content --> Entity deleted
+            return True
+        case 401:  # Unauthorized - No valid key provided
+            logger.error("Unauthorized request")
+            response.raise_for_status()
+        case _:
+            # 400: Bad Request --> Malformed request
+            # 403: Forbidden --> Unauthorized Keys
+            # 404: Not Found --> Entity not found
+            # 500: Internal Server Error --> Server Issue
+            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            print(message.model_dump_json(indent=2))
+            response.raise_for_status()
+    return False
+
 
 # --- Card Management --------------------------------------------------------
 
@@ -336,6 +407,32 @@ async def add_card(data: CardUpdateView | dict) -> CardView | None:
             result_data: CardView = CardView.model_validate_json(response.text)
             print(result_data.model_dump_json(indent=2))
             return result_data
+        case 401:  # Unauthorized - No valid key provided
+            logger.error("Unauthorized request")
+            response.raise_for_status()
+        case _:
+            # 400: Bad Request --> Malformed request
+            # 401: Unauthorized --> Unauthorized PIC with this Keys
+            # 403: Forbidden --> Unauthorized Keys
+            # 404: Not Found --> Entity not found
+            # 500: Internal Server Error --> Server Issue
+            message: ApiErrorMessage = ApiErrorMessage.model_validate_json(response.text)
+            print(message.model_dump_json(indent=2))
+            response.raise_for_status()
+    return None
+
+
+@openapi_method("POST", BASE_PATH + "/cards/issue/{escn}/{kid}", "issueCard")
+async def issue_card(escn: str, kid: str) -> CardStatusView | None:
+    client: AsyncClient = session_manager.client
+    url = f"{BASE_PATH}/cards/issue/{escn}/{kid}"
+    response = await client.post(url=url)
+
+    match response.status_code:
+        case 200:  # OK --> Entity retrieved
+            data: CardStatusView = CardStatusView.model_validate_json(response.text)
+            print(data.model_dump_json(indent=2))
+            return data
         case 401:  # Unauthorized - No valid key provided
             logger.error("Unauthorized request")
             response.raise_for_status()
