@@ -2,6 +2,7 @@ from edutap.esc_router_api.api import get_card_status
 
 import pytest
 
+
 @pytest.mark.asyncio
 async def test_get_card_status():
     status = await get_card_status(escn="024e8a11-e98f-103e-83a9-988999978433")

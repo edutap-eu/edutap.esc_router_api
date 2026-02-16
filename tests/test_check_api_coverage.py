@@ -10,9 +10,11 @@ import pytest
 
 
 # URL zur OpenAPI-Spezifikation
-ESC_API_V3 = "https://dev.europeanstudentcard.eu/esc-rest/v3/api-docs/V2"
-ESC_API_V2 = "https://router.europeanstudentcard.eu/esc-rest/v3/api-docs/V2"
-ESC_API_V1 = "https://router.europeanstudentcard.eu/esc-rest/v3/api-docs/V1"
+# ESC_API_V3 = "https://dev.europeanstudentcard.eu/esc-rest/v3/api-docs/V2"
+# ESC_API_V2 = "https://router.europeanstudentcard.eu/esc-rest/v3/api-docs/V2"
+# ESC_API_V1 = "https://router.europeanstudentcard.eu/esc-rest/v3/api-docs/V1"
+ESC_API_V2 = "https://sandbox.europeanstudentcard.eu/esc-rest/v3/api-docs/V2"
+ESC_API_V1 = "https://sandbox.europeanstudentcard.eu/esc-rest/v3/api-docs/V1"
 DATA_DIR = pathlib.Path(__file__).parent / "data"
 
 
@@ -58,7 +60,7 @@ def get_openapi_spec(url, version) -> bool:
 
 
 def test_get_spec():
-    assert get_openapi_spec(ESC_API_V3, "v3")
+    # assert get_openapi_spec(ESC_API_V3, "v3")
     assert get_openapi_spec(ESC_API_V2, "v2")
     assert get_openapi_spec(ESC_API_V1, "v1")
 

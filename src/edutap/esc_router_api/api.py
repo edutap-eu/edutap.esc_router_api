@@ -252,7 +252,9 @@ async def delete_person(esi: uuid.UUID) -> bool:
             response.raise_for_status()
     return False
 
+
 # --- Person Image Management -----------------------------------------------
+
 
 @openapi_method("GET", BASE_PATH + "/organisations/{id}/person/{esi}/picture", "getStudentPicture")
 async def get_person_image(esi: uuid.UUID) -> bytes | None:
@@ -300,6 +302,7 @@ async def add_person_image(esi: uuid.UUID, image_data: bytes, content_type: str 
             print(message.model_dump_json(indent=2))
             response.raise_for_status()
     return False
+
 
 @openapi_method("DELETE", BASE_PATH + "/organisations/{id}/person/{esi}/picture", "deleteStudentPicture")
 async def delete_person_image(esi: uuid.UUID) -> bool:

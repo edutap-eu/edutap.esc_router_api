@@ -1,1 +1,1736 @@
-{"openapi":"3.1.0","info":{"title":"ESC-Router","version":"1.0"},"servers":[{"url":"/esc-rest","description":"Default Server URL"}],"paths":{"/api/v2/cards":{"get":{"operationId":"findAll_1","parameters":[{"in":"query","name":"sort","required":false,"schema":{"type":"string"}},{"in":"query","name":"direction","required":false,"schema":{"type":"string","default":"ASC"}},{"in":"query","name":"page","required":false,"schema":{"type":"integer","format":"int32","default":0}},{"in":"query","name":"size","required":false,"schema":{"type":"integer","format":"int32","default":10}},{"in":"query","name":"search","required":false,"schema":{"type":"string"}},{"content":{"text/plain":{"schema":{"type":"string","example":"Bearer [Api token]"}}},"description":"Oauth access token","in":"header","name":"Authorization","required":true}],"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/PagedResourcesCardLiteView"}}},"description":"Entity retrieved"},"400":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Bad request"},"401":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unauthorized"},"403":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Forbidden"},"500":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unexpected error"}},"tags":["V2/card"]},"post":{"description":"<b>CardType options:</b><br><br><b>UNKNOWN</b> = Unknown / None<br><b>PASSIVE</b> = Physical passive card, with no electronic component<br><b>SMART_NO_CDZ</b> = Physical smart card, without ESC data zone<br><b>SMART_CDZ</b> = Physical smart card, with ESC data zone<br><b>SMART_MAY_SP</b> = Physical smart card, with custom data by service providers<br><b>SMART_PASSIVE</b> = Digital passive card, with no electronic component<br><b>SMART_PASSIVE_EMULATION</b> = Digital smart card, with physical card emulation","operationId":"create_1","parameters":[{"content":{"text/plain":{"schema":{"type":"string","example":"Bearer [Api token]"}}},"description":"Oauth access token","in":"header","name":"Authorization","required":true}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CardUpdateView"}}},"required":true},"responses":{"201":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CardView"}}},"description":"Entity created"},"400":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Bad request"},"401":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unauthorized"},"403":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Forbidden"},"409":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Entity already exists"},"500":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unexpected error"}},"tags":["V2/card"]}},"/api/v2/cards/generate-escn":{"get":{"description":"Generates valid ESCN identifiers for cards","operationId":"getEscnList","parameters":[{"description":"3 digit prefix to distinguish servers of a same institution","in":"query","name":"prefix","required":true,"schema":{"type":"integer","format":"int32"}},{"description":"The pic identifier of the organisation","in":"query","name":"pic","required":true,"schema":{"type":"string"}},{"description":"Number of ESCNs to generate","in":"query","name":"numberOfESCN","required":false,"schema":{"type":"integer","format":"int32","default":1}}],"responses":{"200":{"content":{"application/json":{"schema":{"type":"array","items":{"type":"string"}}}},"description":"Entity retrieved"},"400":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Bad request"},"500":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unexpected error"}},"tags":["V2/card"]}},"/api/v2/cards/issue/{escn}/{kid}":{"post":{"operationId":"issueCard","parameters":[{"in":"path","name":"escn","required":true,"schema":{"type":"string"}},{"in":"path","name":"kid","required":true,"schema":{"type":"string"}},{"in":"query","name":"sendMail","required":false,"schema":{"type":"boolean","default":true}}],"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/IssueResponseView"}}},"description":"VC Card Issued"},"401":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unauthorized"},"403":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Forbidden"},"404":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Entity not found"},"500":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unexpected error"}},"tags":["V2/card"]}},"/api/v2/cards/{escn}":{"delete":{"operationId":"delete_1","parameters":[{"in":"path","name":"escn","required":true,"schema":{"type":"string"}},{"content":{"text/plain":{"schema":{"type":"string","example":"Bearer [Api token]"}}},"description":"Oauth access token","in":"header","name":"Authorization","required":true}],"responses":{"204":{"content":{"application/json":{"schema":{"type":"string"}}},"description":"Entity deleted"},"401":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unauthorized"},"403":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Forbidden"},"404":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Entity not found"},"500":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unexpected error"}},"tags":["V2/card"]},"get":{"operationId":"findByExternalId_1","parameters":[{"in":"path","name":"escn","required":true,"schema":{"type":"string"}},{"content":{"text/plain":{"schema":{"type":"string","example":"Bearer [Api token]"}}},"description":"Oauth access token","in":"header","name":"Authorization","required":true}],"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CardView"}}},"description":"Entity retrieved"},"400":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Bad request"},"401":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unauthorized"},"403":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Forbidden"},"404":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Entity not found"},"500":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unexpected error"}},"tags":["V2/card"]},"put":{"description":"<b>To update an expired card, you must:</b><br>- Update card status to <b>ACTIVE</b> or <b>INACTIVE</b><br>- Update card <b>expiration date</b><br><br><b>CardType options:</b><br><br><b>UNKNOWN</b> = Unknown / None<br><b>PASSIVE</b> = Physical passive card, with no electronic component<br><b>SMART_NO_CDZ</b> = Physical smart card, without ESC data zone<br><b>SMART_CDZ</b> = Physical smart card, with ESC data zone<br><b>SMART_MAY_SP</b> = Physical smart card, with custom data by service providers<br><b>SMART_PASSIVE</b> = Digital passive card, with no electronic component<br><b>SMART_PASSIVE_EMULATION</b> = Digital smart card, with physical card emulation","operationId":"update_1","parameters":[{"in":"path","name":"escn","required":true,"schema":{"type":"string"}},{"content":{"text/plain":{"schema":{"type":"string","example":"Bearer [Api token]"}}},"description":"Oauth access token","in":"header","name":"Authorization","required":true}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CardUpdateView"}}},"required":true},"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CardView"}}},"description":"Entity updated"},"400":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Bad request"},"401":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unauthorized"},"403":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Forbidden"},"404":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Entity not found"},"500":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unexpected error"}},"tags":["V2/card"]}},"/api/v2/cards/{escn}/qr":{"get":{"description":"Downloads a QR pointing to the ESC verifier in SVG format or gets a Base64 encoded QR","operationId":"getQRCode","parameters":[{"description":"The accepted media type (image/svg+xml or text/plain)","in":"header","name":"Accept","required":true,"schema":{"type":"string","default":"image/svg+xml"}},{"description":"The number of the card","in":"path","name":"escn","required":true,"schema":{"type":"string"}},{"description":"The orientation of the QR [vertical/horizontal]","in":"query","name":"orientation","required":false,"schema":{"type":"string","default":"horizontal"}},{"description":"The colours of the QR [normal/inverted]","in":"query","name":"colours","required":false,"schema":{"type":"string","default":"normal"}},{"description":"The size of the QR [XS/S/M]","in":"query","name":"size","required":false,"schema":{"type":"string","default":"S"}}],"responses":{"200":{"content":{"image/svg+xml":{"schema":{"type":"object"}},"text/plain":{"schema":{"type":"object"}}},"description":"Entity retrieved"},"400":{"content":{"image/svg+xml":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}},"text/plain":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Bad request"},"500":{"content":{"image/svg+xml":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}},"text/plain":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unexpected error"}},"tags":["V2/card"]}},"/api/v2/cards/{escn}/status":{"get":{"operationId":"status","parameters":[{"description":"The card number","in":"path","name":"escn","required":true,"schema":{"type":"string"}}],"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/CardStatusView"}}},"description":"Entity retrieved"},"404":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Entity not found"},"500":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unexpected error"}},"tags":["V2/card"]}},"/api/v2/organisations/{id}/person/{esi}/picture":{"delete":{"operationId":"deleteStudentPicture","parameters":[{"description":"The identifier of the organisation","in":"path","name":"id","required":true,"schema":{"type":"string"}},{"description":"The identifier of the student","in":"path","name":"esi","required":true,"schema":{"type":"string"}}],"responses":{"204":{"content":{"*/*":{"schema":{"type":"string"}}},"description":"Successful operation"},"403":{"content":{"*/*":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Forbidden"},"500":{"content":{"*/*":{"schema":{"type":"string"}}},"description":"Unexpected error"}},"tags":["V2/image"]},"get":{"operationId":"getStudentPicture","parameters":[{"description":"The identifier of the organisation","in":"path","name":"id","required":true,"schema":{"type":"string"}},{"description":"The identifier of the student","in":"path","name":"esi","required":true,"schema":{"type":"string"}}],"responses":{"200":{"content":{"application/octet-stream":{"schema":{"type":"string","format":"binary"}}},"description":"File retrieved"},"401":{"content":{"application/octet-stream":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unauthorized"},"403":{"content":{"application/octet-stream":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Forbidden"},"404":{"content":{"application/octet-stream":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Entity not found"},"500":{"content":{"application/octet-stream":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unexpected error retrieving the file"}},"tags":["V2/image"]},"post":{"operationId":"uploadStudentPicture","parameters":[{"description":"The identifier of the organisation","in":"path","name":"id","required":true,"schema":{"type":"string"}},{"description":"The identifier of the student","in":"path","name":"esi","required":true,"schema":{"type":"string"}},{"description":"If enabled, the image will be resized and cropped to 200px*300px","in":"query","name":"resize","required":false,"schema":{"type":"boolean","default":false}}],"requestBody":{"content":{"multipart/form-data":{"schema":{"type":"object","properties":{"file":{"type":"string","format":"binary","description":"The uploaded image, must be a 200px*300px image, if not, resize must be enabled"}},"required":["file"]}}}},"responses":{"201":{"content":{"application/json":{"schema":{"type":"string"}}},"description":"File created"},"403":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Forbidden"},"404":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Entity not found"},"500":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unexpected error storing the file"}},"tags":["V2/image"]}},"/api/v2/persons":{"get":{"operationId":"findAll","parameters":[{"in":"query","name":"sort","required":false,"schema":{"type":"string"}},{"in":"query","name":"direction","required":false,"schema":{"type":"string","default":"ASC"}},{"in":"query","name":"page","required":false,"schema":{"type":"integer","format":"int32","default":0}},{"in":"query","name":"size","required":false,"schema":{"type":"integer","format":"int32","default":10}},{"in":"query","name":"search","required":false,"schema":{"type":"string"}},{"content":{"text/plain":{"schema":{"type":"string","example":"Bearer [Api token]"}}},"description":"Oauth access token","in":"header","name":"Authorization","required":true}],"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/PagedResourcesPersonLiteView"}}},"description":"Entity retrieved"},"400":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Bad request"},"401":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unauthorized"},"403":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Forbidden"},"500":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unexpected error"}},"tags":["V2/person"]},"post":{"description":"<b>Academic level options:</b><br><ul><li>BACHELOR</li><li>MASTER</li><li>DOCTORATE</li></ul><br><b>European student identifier:</b><br><br>Old Format: <br><ul><li><b>CN-PIC-STUDENTCODE</b></li></ul>New Format: <br><ul><li>For countries with a nation wide scope student ID <b>PREFIX:CN:STUDENTCODE</b></li><li>For countries with a HEI wide scope student ID <b>PREFIX:SchacHomeOrganization:STUDENTCODE</b></li></ul><b>CN</b> - Country code of the institution (ISO 3166-1 norm)<br><b>PIC</b> - Participation Identification Code of the insitution where the student is enrolled<br><b>PREFIX</b> - urn:schac:personalUniqueCode:int:esi<br><b>SchacHomeOrganization</b> is the domain of the Higher Education Institution<br><b>STUDENTCODE</b> - Student unique code in the HEI where he is enrolled. If the country have national/regional identity code, this code will be national/regional wide, otherwise it will be the home institution own identifier.","operationId":"create","parameters":[{"content":{"text/plain":{"schema":{"type":"string","example":"Bearer [Api token]"}}},"description":"Oauth access token","in":"header","name":"Authorization","required":true}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/PersonUpdateView"}}},"required":true},"responses":{"201":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/PersonView"}}},"description":"Entity created"},"400":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Bad request"},"401":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unauthorized"},"403":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Forbidden"},"409":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Entity already exists"},"500":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unexpected error"}},"tags":["V2/person"]}},"/api/v2/persons/{esi}":{"delete":{"operationId":"delete","parameters":[{"in":"path","name":"esi","required":true,"schema":{"type":"string"}},{"content":{"text/plain":{"schema":{"type":"string","example":"Bearer [Api token]"}}},"description":"Oauth access token","in":"header","name":"Authorization","required":true}],"responses":{"204":{"content":{"application/json":{"schema":{"type":"string"}}},"description":"Entity deleted"},"401":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unauthorized"},"403":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Forbidden"},"404":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Entity not found"},"500":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unexpected error"}},"tags":["V2/person"]},"get":{"operationId":"findByExternalId","parameters":[{"in":"path","name":"esi","required":true,"schema":{"type":"string"}},{"content":{"text/plain":{"schema":{"type":"string","example":"Bearer [Api token]"}}},"description":"Oauth access token","in":"header","name":"Authorization","required":true}],"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/PersonView"}}},"description":"Entity retrieved"},"400":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Bad request"},"401":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unauthorized"},"403":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Forbidden"},"404":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Entity not found"},"500":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unexpected error"}},"tags":["V2/person"]},"put":{"description":"<b>Academic level options:</b><br><ul><li>BACHELOR</li><li>MASTER</li><li>DOCTORATE</li></ul><br><b>European student identifier:</b><br><br>Old Format: <br><ul><li><b>CN-PIC-STUDENTCODE</b></li></ul>New Format: <br><ul><li>For countries with a nation wide scope student ID <b>PREFIX:CN:STUDENTCODE</b></li><li>For countries with a HEI wide scope student ID <b>PREFIX:SchacHomeOrganization:STUDENTCODE</b></li></ul><b>CN</b> - Country code of the institution (ISO 3166-1 norm)<br><b>PIC</b> - Participation Identification Code of the insitution where the student is enrolled<br><b>PREFIX</b> - urn:schac:personalUniqueCode:int:esi<br><b>SchacHomeOrganization</b> is the domain of the Higher Education Institution<br><b>STUDENTCODE</b> - Student unique code in the HEI where he is enrolled. If the country have national/regional identity code, this code will be national/regional wide, otherwise it will be the home institution own identifier.","operationId":"update","parameters":[{"in":"path","name":"esi","required":true,"schema":{"type":"string"}},{"content":{"text/plain":{"schema":{"type":"string","example":"Bearer [Api token]"}}},"description":"Oauth access token","in":"header","name":"Authorization","required":true}],"requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/PersonUpdateView"}}},"required":true},"responses":{"200":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/PersonView"}}},"description":"Entity updated"},"400":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Bad request"},"401":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unauthorized"},"403":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Forbidden"},"404":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Entity not found"},"500":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/ApiErrorMessage"}}},"description":"Unexpected error"}},"tags":["V2/person"]}}},"components":{"schemas":{"AddressView":{"type":"object","properties":{"addressDetails":{"type":"string","description":"Additional details about the entity's address, such as floor or apartment number.","example":"1st floor, B"},"cityName":{"type":"string","description":"The name of the city where the entity is located.","example":"BARCELONA"},"country":{"$ref":"#/components/schemas/CodeView","description":"The country where the entity is located.","example":"Spain"},"houseNumber":{"type":"string","description":"The house or building number of the entity.","example":14},"label":{"type":"string","description":"A descriptive label for the entity's location.","example":"Copy shop A"},"otherComments":{"type":"string","description":"Any other relevant comments or instructions regarding the entity's location.","example":"Use the door bell"},"point":{"$ref":"#/components/schemas/PointView","description":"The longitude and longitude of the entity's geographical location."},"province":{"type":"string","description":"The province or autonomous community where the entity is located.","example":"CATALUÑA/CATALUNYA"},"streetName":{"type":"string","description":"The name of the street where the entity is located.","example":"PZ CATALUNYA"}}},"ApiErrorMessage":{"type":"object","properties":{"code":{"type":"string"},"message":{"type":"string"}}},"CardLiteView":{"type":"object","properties":{"cardNumber":{"type":"string","description":"The card number using the algorithm RFC-4122 version 1, use /api/v2/cards/generate-escn to generate a valid card number or leave it blank and it will be autogenerated (POST ONLY)","example":"3e506370-826a-103d-bf76-001000000001","maxLength":255,"minLength":0},"cardStatusType":{"$ref":"#/components/schemas/CodeView"},"displayName":{"type":"string","description":"The name displayed on the card","example":"Card of John","maxLength":255,"minLength":0},"expiresAt":{"type":"string","description":"The expiration date of the card (yyyy-MM-dd ISO-8601)","example":"2040-12-31"},"hasOwnerAuthorization":{"type":"boolean","description":"Is the User's organisation authorized with the card"},"issuedAt":{"type":"string","description":"The issued date of the card (yyyy-MM-dd ISO-8601)","example":"2030-12-31"},"issuer":{"$ref":"#/components/schemas/OrganisationLiteView"},"person":{"$ref":"#/components/schemas/PersonLiteView"},"processor":{"$ref":"#/components/schemas/OrganisationLiteView"}}},"CardStatusView":{"type":"object","properties":{"cardNumber":{"type":"string","description":"The card number using the algorithm RFC-4122 version 1, use /api/v2/cards/generate-escn to generate a valid card number or leave it blank and it will be autogenerated (POST ONLY)","example":"3e506370-826a-103d-bf76-001000000001","maxLength":255,"minLength":0},"displayName":{"type":"string","description":"The name displayed on the card","example":"Card of John","maxLength":255,"minLength":0},"expiresAt":{"type":"string","description":"The expiration date of the card (yyyy-MM-dd ISO-8601)","example":"2040-12-31"},"issuedAt":{"type":"string","description":"The issued date of the card (yyyy-MM-dd ISO-8601)","example":"2030-12-31"},"issuerIdentifier":{"type":"string","description":"The identifier of the issuer organisation (PIC)","example":123456789},"issuerName":{"type":"string","description":"The name of the issuer organisation","example":"Université de Saint-Valentin"},"status":{"type":"string","description":"The status of the card (ACTIVE/INACTIVE/EXPIRED)","example":"ACTIVE"}}},"CardUpdateView":{"type":"object","properties":{"cardNumber":{"type":"string","description":"The card number using the algorithm RFC-4122 version 1, use /api/v2/cards/generate-escn to generate a valid card number or leave it blank and it will be autogenerated (POST ONLY)","example":"3e506370-826a-103d-bf76-001000000001","maxLength":255,"minLength":0},"cardStatusType":{"type":"string","description":"The status of the card (ACTIVE/INACTIVE)","example":"ACTIVE","maxLength":255,"minLength":0},"cardType":{"type":"string","description":"Card Type. \n\nPossible values are: \n\nUNKNOWN = Unknown / None \n\nPASSIVE = Physical passive card, with no electronic component \n\nSMART_NO_CDZ = Physical smart card, without ESC data zone \n\nSMART_CDZ = Physical smart card, with ESC data zone \n\nSMART_MAY_SP = Physical smart card, with custom data by service providers \n\nSMART_PASSIVE = Digital passive card, with no electronic component \n\nSMART_PASSIVE_EMULATION = Digital smart card, with physical card emulation","example":"UNKNOWN","maxLength":255,"minLength":0},"displayName":{"type":"string","description":"The name displayed on the card","example":"Card of John","maxLength":255,"minLength":0},"expiresAt":{"type":"string","description":"The expiration date of the card (yyyy-MM-dd ISO-8601)","example":"2040-12-31"},"issuedAt":{"type":"string","description":"The issued date of the card (yyyy-MM-dd ISO-8601)","example":"2030-12-31"},"issuerIdentifier":{"type":"string","description":"The identifier of the issuer organisation (PIC)","example":123456789},"personIdentifier":{"type":"string","description":"The european student identifier of the student","example":"urn:schac:personalUniqueCode:int:esi:HR:xxxxxxxxxx"},"processorIdentifier":{"type":"string","description":"The identifier of the processor organisation (VAT)","example":"B12345678"}},"required":["cardStatusType","cardType","expiresAt","issuedAt","issuerIdentifier","personIdentifier"]},"CardView":{"type":"object","properties":{"cardNumber":{"type":"string","description":"The card number using the algorithm RFC-4122 version 1, use /api/v2/cards/generate-escn to generate a valid card number or leave it blank and it will be autogenerated (POST ONLY)","example":"3e506370-826a-103d-bf76-001000000001","maxLength":255,"minLength":0},"cardStatusType":{"$ref":"#/components/schemas/CodeView"},"cardType":{"$ref":"#/components/schemas/CodeView"},"displayName":{"type":"string","description":"The name displayed on the card","example":"Card of John","maxLength":255,"minLength":0},"expiresAt":{"type":"string","description":"The expiration date of the card (yyyy-MM-dd ISO-8601)","example":"2040-12-31"},"hasOwnerAuthorization":{"type":"boolean","description":"Is the User's organisation authorized with the card"},"issuedAt":{"type":"string","description":"The issued date of the card (yyyy-MM-dd ISO-8601)","example":"2030-12-31"},"issuer":{"$ref":"#/components/schemas/OrganisationLiteView"},"person":{"$ref":"#/components/schemas/PersonLiteView"},"processor":{"$ref":"#/components/schemas/OrganisationLiteView"}}},"CodeView":{"type":"object","properties":{"key":{"type":"string","description":"The key of the entity","example":"KEY"},"label":{"type":"string","description":"The label of the entity","example":"Label"}}},"ContactPointView":{"type":"object","properties":{"email":{"type":"string","description":"The email of the contact","example":"contact@example.be","maxLength":255,"minLength":0}}},"IssueResponseView":{"type":"object","properties":{"credentialOfferUri":{"type":"string"}}},"Link":{"type":"object","properties":{"deprecation":{"type":"string"},"href":{"type":"string"},"hreflang":{"type":"string"},"media":{"type":"string"},"name":{"type":"string"},"profile":{"type":"string"},"rel":{"type":"string"},"title":{"type":"string"},"type":{"type":"string"}}},"OrganisationLiteView":{"type":"object","properties":{"address":{"$ref":"#/components/schemas/AddressView"},"contrastColor":{"type":"string"},"fullLabel":{"type":"string","description":"A concatenation of the identifier and the name of the organisation","example":123456789},"id":{"type":"integer","format":"int64"},"identifier":{"type":"string","description":"The identifier of the organisation (PIC/VAT)","example":123456789},"identifierCode":{"$ref":"#/components/schemas/CodeView"},"mainColor":{"type":"string"},"name":{"type":"string","description":"The name of the organisation","example":"Université de Saint-Valentin"},"newLogoAt":{"type":"string","format":"date"},"organisationType":{"$ref":"#/components/schemas/CodeView"},"qrColor":{"$ref":"#/components/schemas/CodeView"},"schacHomeOrganization":{"type":"string","description":"The SCHAC code of the organisation","example":"schacHomeOrganization=univ-saint-valentin.fr"},"secondaryColor":{"type":"string"},"status":{"$ref":"#/components/schemas/CodeView"},"website":{"type":"string","description":"The website of the organisation","example":"www.univ-saint-valentin.fr"}}},"PageMetadata":{"type":"object","properties":{"number":{"type":"integer","format":"int64"},"size":{"type":"integer","format":"int64"},"totalElements":{"type":"integer","format":"int64"},"totalPages":{"type":"integer","format":"int64"}}},"PagedResourcesCardLiteView":{"type":"object","properties":{"content":{"type":"array","items":{"$ref":"#/components/schemas/CardLiteView"}},"empty":{"type":"boolean"},"links":{"type":"array","items":{"$ref":"#/components/schemas/Link"}},"page":{"$ref":"#/components/schemas/PageMetadata"}}},"PagedResourcesPersonLiteView":{"type":"object","properties":{"content":{"type":"array","items":{"$ref":"#/components/schemas/PersonLiteView"}},"empty":{"type":"boolean"},"links":{"type":"array","items":{"$ref":"#/components/schemas/Link"}},"page":{"$ref":"#/components/schemas/PageMetadata"}}},"PersonLiteView":{"type":"object","properties":{"fullName":{"type":"string","deprecated":true,"description":"[DEPRECATED] The full name of the student","example":"John Smith","maxLength":255,"minLength":0},"identifier":{"type":"string","description":"The european student identifier of the student","example":"urn:schac:personalUniqueCode:int:esi:HR:xxxxxxxxxx","maxLength":255,"minLength":0},"organisations":{"type":"array","items":{"$ref":"#/components/schemas/PersonOrganisationView"},"uniqueItems":true}},"required":["identifier"]},"PersonOrganisationUpdateView":{"type":"object","properties":{"academicLevel":{"type":"string","description":"Current academic level of the student. \n\nPossibles values are: \n\nBACHELOR - bachelor’s degree \n\nMASTER - master’s degree \n\nDOCTORATE - doctorate","example":"BACHELOR","maxLength":255,"minLength":0},"email":{"type":"string","description":"The email of the student","example":"student@example.com","maxLength":255,"minLength":0},"fullName":{"type":"string","description":"The full name of the student","example":"John Smith","maxLength":255,"minLength":0},"organisationIdentifier":{"type":"string","description":"The identifier of the organisation (PIC/VAT)","example":123456789}},"required":["organisationIdentifier"]},"PersonOrganisationView":{"type":"object","properties":{"academicLevel":{"$ref":"#/components/schemas/CodeView"},"contactPoint":{"$ref":"#/components/schemas/ContactPointView"},"fullName":{"type":"string","description":"The full name of the student","example":"John Smith","maxLength":255,"minLength":0},"hasPicture":{"type":"boolean"},"organisation":{"$ref":"#/components/schemas/OrganisationLiteView"}}},"PersonUpdateView":{"type":"object","properties":{"fullName":{"type":"string","deprecated":true,"description":"[DEPRECATED] The full name of the student","example":"John Smith","maxLength":255,"minLength":0},"identifier":{"type":"string","description":"The european student identifier of the student","example":"urn:schac:personalUniqueCode:int:esi:HR:xxxxxxxxxx","maxLength":255,"minLength":0},"identifierCode":{"type":"string","description":"The european student identifier code of the student, 'ESI' is the only available option","example":"ESI","maxLength":255,"minLength":0},"personOrganisationUpdateViews":{"type":"array","items":{"$ref":"#/components/schemas/PersonOrganisationUpdateView"},"uniqueItems":true}},"required":["identifier","personOrganisationUpdateViews"]},"PersonView":{"type":"object","properties":{"fullName":{"type":"string","deprecated":true,"description":"[DEPRECATED] The full name of the student","example":"John Smith","maxLength":255,"minLength":0},"identifier":{"type":"string","description":"The european student identifier of the student","example":"urn:schac:personalUniqueCode:int:esi:HR:xxxxxxxxxx","maxLength":255,"minLength":0},"identifierCode":{"$ref":"#/components/schemas/CodeView"},"organisationCount":{"type":"integer","format":"int32","description":"Number of organisations related to the person","example":1},"organisations":{"type":"array","items":{"$ref":"#/components/schemas/PersonOrganisationView"},"uniqueItems":true}},"required":["identifier"]},"PointView":{"type":"object","properties":{"x":{"type":"number","format":"double","description":"The longitude (X-coordinate) of the entity's geographical location","example":2.1711059481795814},"y":{"type":"number","format":"double","description":"The latitude (Y-coordinate) of the entity's geographical location","example":41.387600792818006}}}},"securitySchemes":{"api_key":{"in":"header","name":"api_key","type":"apiKey"}}}}
+{
+  "openapi": "3.1.0",
+  "info": { "title": "ESC-Router", "version": "1.0" },
+  "servers": [{ "url": "/esc-rest", "description": "Default Server URL" }],
+  "paths": {
+    "/api/v2/cards": {
+      "get": {
+        "operationId": "findAll_1",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "in": "query",
+            "name": "direction",
+            "required": false,
+            "schema": { "type": "string", "default": "ASC" }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": { "type": "integer", "format": "int32", "default": 0 }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "required": false,
+            "schema": { "type": "integer", "format": "int32", "default": 10 }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "example": "Bearer [Api token]" }
+              }
+            },
+            "description": "Oauth access token",
+            "in": "header",
+            "name": "Authorization",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResourcesCardLiteView"
+                }
+              }
+            },
+            "description": "Entity retrieved"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "tags": ["V2/card"]
+      },
+      "post": {
+        "description": "<b>CardType options:</b><br><br><b>UNKNOWN</b> = Unknown / None<br><b>PASSIVE</b> = Physical passive card, with no electronic component<br><b>SMART_NO_CDZ</b> = Physical smart card, without ESC data zone<br><b>SMART_CDZ</b> = Physical smart card, with ESC data zone<br><b>SMART_MAY_SP</b> = Physical smart card, with custom data by service providers<br><b>SMART_PASSIVE</b> = Digital passive card, with no electronic component<br><b>SMART_PASSIVE_EMULATION</b> = Digital smart card, with physical card emulation",
+        "operationId": "create_1",
+        "parameters": [
+          {
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "example": "Bearer [Api token]" }
+              }
+            },
+            "description": "Oauth access token",
+            "in": "header",
+            "name": "Authorization",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CardUpdateView" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CardView" }
+              }
+            },
+            "description": "Entity created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Entity already exists"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "tags": ["V2/card"]
+      }
+    },
+    "/api/v2/cards/generate-escn": {
+      "get": {
+        "description": "Generates valid ESCN identifiers for cards",
+        "operationId": "getEscnList",
+        "parameters": [
+          {
+            "description": "3 digit prefix to distinguish servers of a same institution",
+            "in": "query",
+            "name": "prefix",
+            "required": true,
+            "schema": { "type": "integer", "format": "int32" }
+          },
+          {
+            "description": "The pic identifier of the organisation",
+            "in": "query",
+            "name": "pic",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "description": "Number of ESCNs to generate",
+            "in": "query",
+            "name": "numberOfESCN",
+            "required": false,
+            "schema": { "type": "integer", "format": "int32", "default": 1 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "type": "array", "items": { "type": "string" } }
+              }
+            },
+            "description": "Entity retrieved"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Bad request"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "tags": ["V2/card"]
+      }
+    },
+    "/api/v2/cards/issue/{escn}/{kid}": {
+      "post": {
+        "operationId": "issueCard",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "escn",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "in": "path",
+            "name": "kid",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "in": "query",
+            "name": "sendMail",
+            "required": false,
+            "schema": { "type": "boolean", "default": true }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/IssueResponseView" }
+              }
+            },
+            "description": "VC Card Issued"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Entity not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "tags": ["V2/card"]
+      }
+    },
+    "/api/v2/cards/{escn}": {
+      "delete": {
+        "operationId": "delete_1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "escn",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "example": "Bearer [Api token]" }
+              }
+            },
+            "description": "Oauth access token",
+            "in": "header",
+            "name": "Authorization",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": { "schema": { "type": "string" } }
+            },
+            "description": "Entity deleted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Entity not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "tags": ["V2/card"]
+      },
+      "get": {
+        "operationId": "findByExternalId_1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "escn",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "example": "Bearer [Api token]" }
+              }
+            },
+            "description": "Oauth access token",
+            "in": "header",
+            "name": "Authorization",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CardView" }
+              }
+            },
+            "description": "Entity retrieved"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Entity not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "tags": ["V2/card"]
+      },
+      "put": {
+        "description": "<b>To update an expired card, you must:</b><br>- Update card status to <b>ACTIVE</b> or <b>INACTIVE</b><br>- Update card <b>expiration date</b><br><br><b>CardType options:</b><br><br><b>UNKNOWN</b> = Unknown / None<br><b>PASSIVE</b> = Physical passive card, with no electronic component<br><b>SMART_NO_CDZ</b> = Physical smart card, without ESC data zone<br><b>SMART_CDZ</b> = Physical smart card, with ESC data zone<br><b>SMART_MAY_SP</b> = Physical smart card, with custom data by service providers<br><b>SMART_PASSIVE</b> = Digital passive card, with no electronic component<br><b>SMART_PASSIVE_EMULATION</b> = Digital smart card, with physical card emulation",
+        "operationId": "update_1",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "escn",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "example": "Bearer [Api token]" }
+              }
+            },
+            "description": "Oauth access token",
+            "in": "header",
+            "name": "Authorization",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/CardUpdateView" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CardView" }
+              }
+            },
+            "description": "Entity updated"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Entity not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "tags": ["V2/card"]
+      }
+    },
+    "/api/v2/cards/{escn}/qr": {
+      "get": {
+        "description": "Downloads a QR pointing to the ESC verifier in SVG format or gets a Base64 encoded QR",
+        "operationId": "getQRCode",
+        "parameters": [
+          {
+            "description": "The accepted media type (image/svg+xml or text/plain)",
+            "in": "header",
+            "name": "Accept",
+            "required": true,
+            "schema": { "type": "string", "default": "image/svg+xml" }
+          },
+          {
+            "description": "The number of the card",
+            "in": "path",
+            "name": "escn",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "description": "The orientation of the QR [vertical/horizontal]",
+            "in": "query",
+            "name": "orientation",
+            "required": false,
+            "schema": { "type": "string", "default": "horizontal" }
+          },
+          {
+            "description": "The colours of the QR [normal/inverted]",
+            "in": "query",
+            "name": "colours",
+            "required": false,
+            "schema": { "type": "string", "default": "normal" }
+          },
+          {
+            "description": "The size of the QR [XS/S/M]",
+            "in": "query",
+            "name": "size",
+            "required": false,
+            "schema": { "type": "string", "default": "S" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "image/svg+xml": { "schema": { "type": "object" } },
+              "text/plain": { "schema": { "type": "object" } }
+            },
+            "description": "Entity retrieved"
+          },
+          "400": {
+            "content": {
+              "image/svg+xml": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              },
+              "text/plain": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Bad request"
+          },
+          "500": {
+            "content": {
+              "image/svg+xml": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              },
+              "text/plain": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "tags": ["V2/card"]
+      }
+    },
+    "/api/v2/cards/{escn}/status": {
+      "get": {
+        "operationId": "status",
+        "parameters": [
+          {
+            "description": "The card number",
+            "in": "path",
+            "name": "escn",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/CardStatusView" }
+              }
+            },
+            "description": "Entity retrieved"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Entity not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "tags": ["V2/card"]
+      }
+    },
+    "/api/v2/organisations/{id}/person/{esi}/picture": {
+      "delete": {
+        "operationId": "deleteStudentPicture",
+        "parameters": [
+          {
+            "description": "The identifier of the organisation",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "description": "The identifier of the student",
+            "in": "path",
+            "name": "esi",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "204": {
+            "content": { "*/*": { "schema": { "type": "string" } } },
+            "description": "Successful operation"
+          },
+          "403": {
+            "content": {
+              "*/*": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "500": {
+            "content": { "*/*": { "schema": { "type": "string" } } },
+            "description": "Unexpected error"
+          }
+        },
+        "tags": ["V2/image"]
+      },
+      "get": {
+        "operationId": "getStudentPicture",
+        "parameters": [
+          {
+            "description": "The identifier of the organisation",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "description": "The identifier of the student",
+            "in": "path",
+            "name": "esi",
+            "required": true,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/octet-stream": {
+                "schema": { "type": "string", "format": "binary" }
+              }
+            },
+            "description": "File retrieved"
+          },
+          "401": {
+            "content": {
+              "application/octet-stream": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/octet-stream": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/octet-stream": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Entity not found"
+          },
+          "500": {
+            "content": {
+              "application/octet-stream": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unexpected error retrieving the file"
+          }
+        },
+        "tags": ["V2/image"]
+      },
+      "post": {
+        "operationId": "uploadStudentPicture",
+        "parameters": [
+          {
+            "description": "The identifier of the organisation",
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "description": "The identifier of the student",
+            "in": "path",
+            "name": "esi",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "description": "If enabled, the image will be resized and cropped to 200px*300px",
+            "in": "query",
+            "name": "resize",
+            "required": false,
+            "schema": { "type": "boolean", "default": false }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "The uploaded image, must be a 200px*300px image, if not, resize must be enabled"
+                  }
+                },
+                "required": ["file"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": { "schema": { "type": "string" } }
+            },
+            "description": "File created"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Entity not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unexpected error storing the file"
+          }
+        },
+        "tags": ["V2/image"]
+      }
+    },
+    "/api/v2/persons": {
+      "get": {
+        "operationId": "findAll",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "in": "query",
+            "name": "direction",
+            "required": false,
+            "schema": { "type": "string", "default": "ASC" }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": { "type": "integer", "format": "int32", "default": 0 }
+          },
+          {
+            "in": "query",
+            "name": "size",
+            "required": false,
+            "schema": { "type": "integer", "format": "int32", "default": 10 }
+          },
+          {
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "example": "Bearer [Api token]" }
+              }
+            },
+            "description": "Oauth access token",
+            "in": "header",
+            "name": "Authorization",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PagedResourcesPersonLiteView"
+                }
+              }
+            },
+            "description": "Entity retrieved"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "tags": ["V2/person"]
+      },
+      "post": {
+        "description": "<b>Academic level options:</b><br><ul><li>BACHELOR</li><li>MASTER</li><li>DOCTORATE</li></ul><br><b>European student identifier:</b><br><br>Old Format: <br><ul><li><b>CN-PIC-STUDENTCODE</b></li></ul>New Format: <br><ul><li>For countries with a nation wide scope student ID <b>PREFIX:CN:STUDENTCODE</b></li><li>For countries with a HEI wide scope student ID <b>PREFIX:SchacHomeOrganization:STUDENTCODE</b></li></ul><b>CN</b> - Country code of the institution (ISO 3166-1 norm)<br><b>PIC</b> - Participation Identification Code of the insitution where the student is enrolled<br><b>PREFIX</b> - urn:schac:personalUniqueCode:int:esi<br><b>SchacHomeOrganization</b> is the domain of the Higher Education Institution<br><b>STUDENTCODE</b> - Student unique code in the HEI where he is enrolled. If the country have national/regional identity code, this code will be national/regional wide, otherwise it will be the home institution own identifier.",
+        "operationId": "create",
+        "parameters": [
+          {
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "example": "Bearer [Api token]" }
+              }
+            },
+            "description": "Oauth access token",
+            "in": "header",
+            "name": "Authorization",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PersonUpdateView" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PersonView" }
+              }
+            },
+            "description": "Entity created"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Entity already exists"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "tags": ["V2/person"]
+      }
+    },
+    "/api/v2/persons/{esi}": {
+      "delete": {
+        "operationId": "delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "esi",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "example": "Bearer [Api token]" }
+              }
+            },
+            "description": "Oauth access token",
+            "in": "header",
+            "name": "Authorization",
+            "required": true
+          }
+        ],
+        "responses": {
+          "204": {
+            "content": {
+              "application/json": { "schema": { "type": "string" } }
+            },
+            "description": "Entity deleted"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Entity not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "tags": ["V2/person"]
+      },
+      "get": {
+        "operationId": "findByExternalId",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "esi",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "example": "Bearer [Api token]" }
+              }
+            },
+            "description": "Oauth access token",
+            "in": "header",
+            "name": "Authorization",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PersonView" }
+              }
+            },
+            "description": "Entity retrieved"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Entity not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "tags": ["V2/person"]
+      },
+      "put": {
+        "description": "<b>Academic level options:</b><br><ul><li>BACHELOR</li><li>MASTER</li><li>DOCTORATE</li></ul><br><b>European student identifier:</b><br><br>Old Format: <br><ul><li><b>CN-PIC-STUDENTCODE</b></li></ul>New Format: <br><ul><li>For countries with a nation wide scope student ID <b>PREFIX:CN:STUDENTCODE</b></li><li>For countries with a HEI wide scope student ID <b>PREFIX:SchacHomeOrganization:STUDENTCODE</b></li></ul><b>CN</b> - Country code of the institution (ISO 3166-1 norm)<br><b>PIC</b> - Participation Identification Code of the insitution where the student is enrolled<br><b>PREFIX</b> - urn:schac:personalUniqueCode:int:esi<br><b>SchacHomeOrganization</b> is the domain of the Higher Education Institution<br><b>STUDENTCODE</b> - Student unique code in the HEI where he is enrolled. If the country have national/regional identity code, this code will be national/regional wide, otherwise it will be the home institution own identifier.",
+        "operationId": "update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "esi",
+            "required": true,
+            "schema": { "type": "string" }
+          },
+          {
+            "content": {
+              "text/plain": {
+                "schema": { "type": "string", "example": "Bearer [Api token]" }
+              }
+            },
+            "description": "Oauth access token",
+            "in": "header",
+            "name": "Authorization",
+            "required": true
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PersonUpdateView" }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/PersonView" }
+              }
+            },
+            "description": "Entity updated"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Entity not found"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/ApiErrorMessage" }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "tags": ["V2/person"]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AddressView": {
+        "type": "object",
+        "properties": {
+          "addressDetails": {
+            "type": "string",
+            "description": "Additional details about the entity's address, such as floor or apartment number.",
+            "example": "1st floor, B"
+          },
+          "cityName": {
+            "type": "string",
+            "description": "The name of the city where the entity is located.",
+            "example": "BARCELONA"
+          },
+          "country": {
+            "$ref": "#/components/schemas/CodeView",
+            "description": "The country where the entity is located.",
+            "example": "Spain"
+          },
+          "houseNumber": {
+            "type": "string",
+            "description": "The house or building number of the entity.",
+            "example": 14
+          },
+          "label": {
+            "type": "string",
+            "description": "A descriptive label for the entity's location.",
+            "example": "Copy shop A"
+          },
+          "otherComments": {
+            "type": "string",
+            "description": "Any other relevant comments or instructions regarding the entity's location.",
+            "example": "Use the door bell"
+          },
+          "point": {
+            "$ref": "#/components/schemas/PointView",
+            "description": "The longitude and longitude of the entity's geographical location."
+          },
+          "province": {
+            "type": "string",
+            "description": "The province or autonomous community where the entity is located.",
+            "example": "CATALUÑA/CATALUNYA"
+          },
+          "streetName": {
+            "type": "string",
+            "description": "The name of the street where the entity is located.",
+            "example": "PZ CATALUNYA"
+          }
+        }
+      },
+      "ApiErrorMessage": {
+        "type": "object",
+        "properties": {
+          "code": { "type": "string" },
+          "message": { "type": "string" }
+        }
+      },
+      "CardLiteView": {
+        "type": "object",
+        "properties": {
+          "cardNumber": {
+            "type": "string",
+            "description": "The card number using the algorithm RFC-4122 version 1, use /api/v2/cards/generate-escn to generate a valid card number or leave it blank and it will be autogenerated (POST ONLY)",
+            "example": "3e506370-826a-103d-bf76-001000000001",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "cardStatusType": { "$ref": "#/components/schemas/CodeView" },
+          "displayName": {
+            "type": "string",
+            "description": "The name displayed on the card",
+            "example": "Card of John",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "The expiration date of the card (yyyy-MM-dd ISO-8601)",
+            "example": "2040-12-31"
+          },
+          "hasOwnerAuthorization": {
+            "type": "boolean",
+            "description": "Is the User's organisation authorized with the card"
+          },
+          "issuedAt": {
+            "type": "string",
+            "description": "The issued date of the card (yyyy-MM-dd ISO-8601)",
+            "example": "2030-12-31"
+          },
+          "issuer": { "$ref": "#/components/schemas/OrganisationLiteView" },
+          "person": { "$ref": "#/components/schemas/PersonLiteView" },
+          "processor": { "$ref": "#/components/schemas/OrganisationLiteView" }
+        }
+      },
+      "CardStatusView": {
+        "type": "object",
+        "properties": {
+          "cardNumber": {
+            "type": "string",
+            "description": "The card number using the algorithm RFC-4122 version 1, use /api/v2/cards/generate-escn to generate a valid card number or leave it blank and it will be autogenerated (POST ONLY)",
+            "example": "3e506370-826a-103d-bf76-001000000001",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "displayName": {
+            "type": "string",
+            "description": "The name displayed on the card",
+            "example": "Card of John",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "The expiration date of the card (yyyy-MM-dd ISO-8601)",
+            "example": "2040-12-31"
+          },
+          "issuedAt": {
+            "type": "string",
+            "description": "The issued date of the card (yyyy-MM-dd ISO-8601)",
+            "example": "2030-12-31"
+          },
+          "issuerIdentifier": {
+            "type": "string",
+            "description": "The identifier of the issuer organisation (PIC)",
+            "example": 123456789
+          },
+          "issuerName": {
+            "type": "string",
+            "description": "The name of the issuer organisation",
+            "example": "Université de Saint-Valentin"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the card (ACTIVE/INACTIVE/EXPIRED)",
+            "example": "ACTIVE"
+          }
+        }
+      },
+      "CardUpdateView": {
+        "type": "object",
+        "properties": {
+          "cardNumber": {
+            "type": "string",
+            "description": "The card number using the algorithm RFC-4122 version 1, use /api/v2/cards/generate-escn to generate a valid card number or leave it blank and it will be autogenerated (POST ONLY)",
+            "example": "3e506370-826a-103d-bf76-001000000001",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "cardStatusType": {
+            "type": "string",
+            "description": "The status of the card (ACTIVE/INACTIVE)",
+            "example": "ACTIVE",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "cardType": {
+            "type": "string",
+            "description": "Card Type. \n\nPossible values are: \n\nUNKNOWN = Unknown / None \n\nPASSIVE = Physical passive card, with no electronic component \n\nSMART_NO_CDZ = Physical smart card, without ESC data zone \n\nSMART_CDZ = Physical smart card, with ESC data zone \n\nSMART_MAY_SP = Physical smart card, with custom data by service providers \n\nSMART_PASSIVE = Digital passive card, with no electronic component \n\nSMART_PASSIVE_EMULATION = Digital smart card, with physical card emulation",
+            "example": "UNKNOWN",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "displayName": {
+            "type": "string",
+            "description": "The name displayed on the card",
+            "example": "Card of John",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "The expiration date of the card (yyyy-MM-dd ISO-8601)",
+            "example": "2040-12-31"
+          },
+          "issuedAt": {
+            "type": "string",
+            "description": "The issued date of the card (yyyy-MM-dd ISO-8601)",
+            "example": "2030-12-31"
+          },
+          "issuerIdentifier": {
+            "type": "string",
+            "description": "The identifier of the issuer organisation (PIC)",
+            "example": 123456789
+          },
+          "personIdentifier": {
+            "type": "string",
+            "description": "The european student identifier of the student",
+            "example": "urn:schac:personalUniqueCode:int:esi:HR:xxxxxxxxxx"
+          },
+          "processorIdentifier": {
+            "type": "string",
+            "description": "The identifier of the processor organisation (VAT)",
+            "example": "B12345678"
+          }
+        },
+        "required": [
+          "cardStatusType",
+          "cardType",
+          "expiresAt",
+          "issuedAt",
+          "issuerIdentifier",
+          "personIdentifier"
+        ]
+      },
+      "CardView": {
+        "type": "object",
+        "properties": {
+          "cardNumber": {
+            "type": "string",
+            "description": "The card number using the algorithm RFC-4122 version 1, use /api/v2/cards/generate-escn to generate a valid card number or leave it blank and it will be autogenerated (POST ONLY)",
+            "example": "3e506370-826a-103d-bf76-001000000001",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "cardStatusType": { "$ref": "#/components/schemas/CodeView" },
+          "cardType": { "$ref": "#/components/schemas/CodeView" },
+          "displayName": {
+            "type": "string",
+            "description": "The name displayed on the card",
+            "example": "Card of John",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "expiresAt": {
+            "type": "string",
+            "description": "The expiration date of the card (yyyy-MM-dd ISO-8601)",
+            "example": "2040-12-31"
+          },
+          "hasOwnerAuthorization": {
+            "type": "boolean",
+            "description": "Is the User's organisation authorized with the card"
+          },
+          "issuedAt": {
+            "type": "string",
+            "description": "The issued date of the card (yyyy-MM-dd ISO-8601)",
+            "example": "2030-12-31"
+          },
+          "issuer": { "$ref": "#/components/schemas/OrganisationLiteView" },
+          "person": { "$ref": "#/components/schemas/PersonLiteView" },
+          "processor": { "$ref": "#/components/schemas/OrganisationLiteView" }
+        }
+      },
+      "CodeView": {
+        "type": "object",
+        "properties": {
+          "key": {
+            "type": "string",
+            "description": "The key of the entity",
+            "example": "KEY"
+          },
+          "label": {
+            "type": "string",
+            "description": "The label of the entity",
+            "example": "Label"
+          }
+        }
+      },
+      "ContactPointView": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "The email of the contact",
+            "example": "contact@example.be",
+            "maxLength": 255,
+            "minLength": 0
+          }
+        }
+      },
+      "IssueResponseView": {
+        "type": "object",
+        "properties": { "credentialOfferUri": { "type": "string" } }
+      },
+      "Link": {
+        "type": "object",
+        "properties": {
+          "deprecation": { "type": "string" },
+          "href": { "type": "string" },
+          "hreflang": { "type": "string" },
+          "media": { "type": "string" },
+          "name": { "type": "string" },
+          "profile": { "type": "string" },
+          "rel": { "type": "string" },
+          "title": { "type": "string" },
+          "type": { "type": "string" }
+        }
+      },
+      "OrganisationLiteView": {
+        "type": "object",
+        "properties": {
+          "address": { "$ref": "#/components/schemas/AddressView" },
+          "contrastColor": { "type": "string" },
+          "fullLabel": {
+            "type": "string",
+            "description": "A concatenation of the identifier and the name of the organisation",
+            "example": 123456789
+          },
+          "id": { "type": "integer", "format": "int64" },
+          "identifier": {
+            "type": "string",
+            "description": "The identifier of the organisation (PIC/VAT)",
+            "example": 123456789
+          },
+          "identifierCode": { "$ref": "#/components/schemas/CodeView" },
+          "mainColor": { "type": "string" },
+          "name": {
+            "type": "string",
+            "description": "The name of the organisation",
+            "example": "Université de Saint-Valentin"
+          },
+          "newLogoAt": { "type": "string", "format": "date" },
+          "organisationType": { "$ref": "#/components/schemas/CodeView" },
+          "qrColor": { "$ref": "#/components/schemas/CodeView" },
+          "schacHomeOrganization": {
+            "type": "string",
+            "description": "The SCHAC code of the organisation",
+            "example": "schacHomeOrganization=univ-saint-valentin.fr"
+          },
+          "secondaryColor": { "type": "string" },
+          "status": { "$ref": "#/components/schemas/CodeView" },
+          "website": {
+            "type": "string",
+            "description": "The website of the organisation",
+            "example": "www.univ-saint-valentin.fr"
+          }
+        }
+      },
+      "PageMetadata": {
+        "type": "object",
+        "properties": {
+          "number": { "type": "integer", "format": "int64" },
+          "size": { "type": "integer", "format": "int64" },
+          "totalElements": { "type": "integer", "format": "int64" },
+          "totalPages": { "type": "integer", "format": "int64" }
+        }
+      },
+      "PagedResourcesCardLiteView": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/CardLiteView" }
+          },
+          "empty": { "type": "boolean" },
+          "links": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Link" }
+          },
+          "page": { "$ref": "#/components/schemas/PageMetadata" }
+        }
+      },
+      "PagedResourcesPersonLiteView": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PersonLiteView" }
+          },
+          "empty": { "type": "boolean" },
+          "links": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/Link" }
+          },
+          "page": { "$ref": "#/components/schemas/PageMetadata" }
+        }
+      },
+      "PersonLiteView": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "deprecated": true,
+            "description": "[DEPRECATED] The full name of the student",
+            "example": "John Smith",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "identifier": {
+            "type": "string",
+            "description": "The european student identifier of the student",
+            "example": "urn:schac:personalUniqueCode:int:esi:HR:xxxxxxxxxx",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "organisations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PersonOrganisationView" },
+            "uniqueItems": true
+          }
+        },
+        "required": ["identifier"]
+      },
+      "PersonOrganisationUpdateView": {
+        "type": "object",
+        "properties": {
+          "academicLevel": {
+            "type": "string",
+            "description": "Current academic level of the student. \n\nPossibles values are: \n\nBACHELOR - bachelor’s degree \n\nMASTER - master’s degree \n\nDOCTORATE - doctorate",
+            "example": "BACHELOR",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the student",
+            "example": "student@example.com",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "fullName": {
+            "type": "string",
+            "description": "The full name of the student",
+            "example": "John Smith",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "organisationIdentifier": {
+            "type": "string",
+            "description": "The identifier of the organisation (PIC/VAT)",
+            "example": 123456789
+          }
+        },
+        "required": ["organisationIdentifier"]
+      },
+      "PersonOrganisationView": {
+        "type": "object",
+        "properties": {
+          "academicLevel": { "$ref": "#/components/schemas/CodeView" },
+          "contactPoint": { "$ref": "#/components/schemas/ContactPointView" },
+          "fullName": {
+            "type": "string",
+            "description": "The full name of the student",
+            "example": "John Smith",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "hasPicture": { "type": "boolean" },
+          "organisation": {
+            "$ref": "#/components/schemas/OrganisationLiteView"
+          }
+        }
+      },
+      "PersonUpdateView": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "deprecated": true,
+            "description": "[DEPRECATED] The full name of the student",
+            "example": "John Smith",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "identifier": {
+            "type": "string",
+            "description": "The european student identifier of the student",
+            "example": "urn:schac:personalUniqueCode:int:esi:HR:xxxxxxxxxx",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "identifierCode": {
+            "type": "string",
+            "description": "The european student identifier code of the student, 'ESI' is the only available option",
+            "example": "ESI",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "personOrganisationUpdateViews": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonOrganisationUpdateView"
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": ["identifier", "personOrganisationUpdateViews"]
+      },
+      "PersonView": {
+        "type": "object",
+        "properties": {
+          "fullName": {
+            "type": "string",
+            "deprecated": true,
+            "description": "[DEPRECATED] The full name of the student",
+            "example": "John Smith",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "identifier": {
+            "type": "string",
+            "description": "The european student identifier of the student",
+            "example": "urn:schac:personalUniqueCode:int:esi:HR:xxxxxxxxxx",
+            "maxLength": 255,
+            "minLength": 0
+          },
+          "identifierCode": { "$ref": "#/components/schemas/CodeView" },
+          "organisationCount": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Number of organisations related to the person",
+            "example": 1
+          },
+          "organisations": {
+            "type": "array",
+            "items": { "$ref": "#/components/schemas/PersonOrganisationView" },
+            "uniqueItems": true
+          }
+        },
+        "required": ["identifier"]
+      },
+      "PointView": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number",
+            "format": "double",
+            "description": "The longitude (X-coordinate) of the entity's geographical location",
+            "example": 2.1711059481795814
+          },
+          "y": {
+            "type": "number",
+            "format": "double",
+            "description": "The latitude (Y-coordinate) of the entity's geographical location",
+            "example": 41.387600792818006
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "api_key": { "in": "header", "name": "api_key", "type": "apiKey" }
+    }
+  }
+}
