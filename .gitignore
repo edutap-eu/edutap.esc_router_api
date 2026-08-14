@@ -55,3 +55,12 @@ var/
 /card-*.txt
 /card-*.svg
 /card-*.png
+
+# ruff
+.ruff_cache/
+
+# Written by hatch-vcs at build time from the git tag, never by hand.
+/src/edutap/esc_router_api/_version.py
+
+# The documentation environment lives beside the documentation, not in .venv.
+/docs/.venv/

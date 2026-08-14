@@ -1,51 +1,35 @@
 ci:
-    autofix_prs: false
-    autoupdate_schedule: monthly
+  autofix_prs: false
+  autoupdate_schedule: monthly
 
 repos:
--   repo: https://github.com/asottile/pyupgrade
-    rev: v3.11.2
+  # ruff replaces what used to be five hooks here: pyupgrade, isort, black, flake8
+  # and bandit. Keep the rev in step with the pin in pyproject.toml -- a ruff minor
+  # release changes what is reported and what gets reformatted.
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.16.0
     hooks:
-    -   id: pyupgrade
--   repo: https://github.com/pycqa/isort
-    rev: 5.12.0
+      - id: ruff-check
+        args: [--fix]
+      - id: ruff-format
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
     hooks:
-    -   id: isort
--   repo: https://github.com/psf/black
-    rev: 23.9.1
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      # tests/data/esc-router-v2.json is written by `make refresh-spec` and must stay
+      # byte-identical to what that target produces, so it is checked but not sorted
+      # or reformatted here.
+      - id: check-json
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.4.1
     hooks:
-    -   id: black
--   repo: https://github.com/PyCQA/flake8
-    rev: 6.1.0
-    hooks:
-    -   id: flake8
--   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.5.1
-    hooks:
-      - id: mypy
-        additional_dependencies:
-        - "types-requests"
-        - "pytest-stub"
--   repo: https://github.com/codespell-project/codespell
-    rev: v2.2.5
-    hooks:
-    -   id: codespell
+      - id: codespell
         additional_dependencies:
           - tomli
-        count: True
-        skip: "tests/data/*.json"
-        # Ignore all JSON files in the tests/data directory
-
--   repo: https://github.com/mgedmin/check-manifest
-    rev: "0.49"
-    hooks:
-    -   id: check-manifest
--   repo: https://github.com/regebro/pyroma
-    rev: "4.2"
-    hooks:
-    -   id: pyroma
--   repo: https://github.com/mgedmin/check-python-versions
-    rev: "0.22.1"
-    hooks:
-    -   id: check-python-versions
-        args: ['--only', 'pyproject.toml']
+# No check-manifest and no MANIFEST.in: hatchling decides what goes into the sdist
+# from its own defaults and .gitignore, so a manifest here would be a second, silent
+# source of truth. The release workflow runs build-and-inspect-python-package, which
+# prints the contents of both distributions on every run -- that is the check.

@@ -1,35 +1,49 @@
+[build-system]
+# hatchling>=1.27 is what understands the PEP 639 `license` expression below. An older
+# hatchling reads it as the legacy table form and fails with a message about types
+# rather than about the standard that changed.
+requires = ["hatchling>=1.27", "hatch-vcs"]
+build-backend = "hatchling.build"
+
 [project]
 name = "edutap.esc_router_api"
-version = "1.0.0a1.dev0"
-description = "Library for Communication with ESC-Router"
-keywords = ["api", "REST", "ESC", "European Student Card"]
+# Version from the git tag, not from this file. The release workflow uploads to
+# test.pypi.org on *every* commit to main, and test.pypi refuses a version it has
+# already seen. A static version would therefore need a bump by hand before each
+# merge -- and the merge that forgot it would fail in the upload step, long after
+# review. hatch-vcs derives `1.0.0b2.dev4` from tag plus distance instead.
+dynamic = ["version"]
+description = "Async client library for the European Student Card Router REST API"
+keywords = ["api", "REST", "ESC", "European Student Card", "async", "httpx"]
 readme = "README.md"
+requires-python = ">=3.13"
 authors = [
-    {name = "Alexander Loechel", email = "Alexander.Loechel@lmu.de"},
-    {name = "Philipp Auersperg-Castell", email = "phil@bluedynamics.com"},
-    {name = "Jens Klein", email = "jk@kleinundpartner.at"},
+    { name = "Alexander Loechel", email = "Alexander.Loechel@lmu.de" },
+    { name = "Philipp Auersperg-Castell", email = "phil@bluedynamics.com" },
+    { name = "Jens Klein", email = "jk@kleinundpartner.at" },
 ]
-requires-python = ">=3.10"
-license = { text = "EUPL 1.2" }
+license = "EUPL-1.2"
+license-files = ["LICENSE"]
+# No `License ::` classifier: `license` above is a PEP 639 SPDX expression, and the
+# two together are rejected by the build backend rather than merely redundant.
 classifiers = [
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "License :: OSI Approved :: European Union Public Licence 1.2 (EUPL 1.2)",
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Software Development :: Libraries",
     "Operating System :: OS Independent",
+    "Typing :: Typed",
 ]
 dependencies = [
-    "pydantic[email]>=2.0",
-    "pydantic_extra_types",
-    "pydantic-settings",
-    "phonenumbers",
+    # httpx2 rather than httpx: it is the house standard for REST clients across the
+    # eduTAP packages, and starlette prefers it too. The `http2` extra pulls in h2,
+    # which the client needs because it negotiates HTTP/2 with the router.
+    "httpx2[http2]>=2.9",
     "pycountry",
-    "httpx[http2]",
-  ]
+    "pydantic>=2.8",
+    "pydantic-settings>=2.4",
+]
 
 [project.urls]
 Source = "https://github.com/edutap-eu/edutap.esc_router_api"
@@ -37,97 +51,112 @@ Issues = "https://github.com/edutap-eu/edutap.esc_router_api/issues"
 Documentation = "https://docs.edutap.eu/packages/edutap_esc_router_api/index.html"
 
 [project.optional-dependencies]
-test = [
-    "pytest",
-    "pytest-asyncio",
-    "pytest_httpx",
-    "pytest-order",
-    "faker",
-]
-typecheck  = [
-    "mypy",
-    "pytest-stub",
-]
-develop = [
-    "pdbpp",
-    "ipython",
+# An extra rather than a dependency group, because a documentation build -- on Read
+# the Docs or in CI -- installs the distribution and cannot reach a PEP 735 group.
+docs = [
+    "myst-parser",
+    "pydata-sphinx-theme",
+    "sphinx>=8",
+    "sphinx-autobuild",
+    "sphinx-copybutton",
+    "sphinx-design",
 ]
 
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+[dependency-groups]
+# PEP 735 rather than `[project.optional-dependencies]`: none of this is anything a
+# consumer of the library could want, and an extra would advertise it on PyPI.
+dev = [
+    "anyio",
+    # For tools/generate_test_data.py, which regenerates tests/data/persons.csv.
+    "faker",
+    "pdbp",
+    "pytest>=8.2",
+    "pytest-explicit",
+    # Pinned to one minor: a ruff minor release changes what the linter reports and
+    # reformats files that were clean yesterday. Keep .pre-commit-config.yaml in step.
+    "ruff>=0.16,<0.17",
+    "ty",
+]
+
+[tool.hatch.version]
+source = "vcs"
+raw-options = { local_scheme = "no-local-version" }
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/edutap/esc_router_api/_version.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/edutap"]
 
-[tool.mypy]
-mypy_path = "./src:./tests"
-explicit_package_bases = true
-
 [tool.pytest.ini_options]
-minversion = "6.0"
-testpaths = [
-    "tests",
-]
-asyncio_mode = "auto"
+minversion = "8.0"
+testpaths = ["tests"]
 markers = [
-    "asyncio: mark test as asyncio-based",
+    "integration: runs against the real ESC Router, needs ESC_API_KEY (deselect with '-m \"not integration\"')",
 ]
+# https://pypi.org/project/pytest-explicit -- integration tests run only when asked
+# for by name or marker. Without this the default `pytest` run reaches the network,
+# which is what made the previous suite unusable in CI.
+explicit-only = ["integration"]
 
-# falls du pytest-dotenv verwendest
-# dotenv_files = [".env"]
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "tests"]
 
-[tool.black]
-line-length = 160
-target-version = ["py310", "py311", "py312"]
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # The following are specific to Black, you probably don't want those.
-  | blib2to3
-  | tests/data
-  | profiling
-)/
-'''
-# We use preview style for formatting Black itself. If you
-# want stable formatting across releases, you should keep
-# this off.
-preview = true
-
-# Build system information and other project-specific configuration below.
-# NOTE: You don't need this in your own Black configuration.
-
-[tool.isort]
-profile = "black"
-force_alphabetical_sort = true
-force_single_line = true
-lines_after_imports = 2
-
-[tool.flake8]
+[tool.ruff.lint]
+select = ["E", "F", "W", "B", "I", "UP", "D", "S"]
 ignore = [
-    "C101",
+    # D203/D213 contradict D211/D212; ruff wants one of each pair chosen.
+    "D203",
+    "D213",
 ]
-per-file-ignores = [
-    '__init__.py:F401',
-]
-max-line-length = 110
-count = true
 
+[tool.ruff.lint.per-file-ignores]
+# `assert` is the point of a test. Docstrings are not required, but the ones that are
+# there earn their place, so D is only relaxed and not switched off wholesale.
+# D401 too: a fixture's docstring names the thing it hands over ("the scripted
+# router"), and rewriting that as a command reads worse than the rule reads well.
+"tests/*" = ["D100", "D101", "D103", "D104", "D401", "S101"]
+
+[tool.ruff.lint.isort]
+force-single-line = true
+lines-after-imports = 2
+
+[tool.ruff.lint.pydocstyle]
+convention = "pep257"
+
+[tool.ty.environment]
+python-version = "3.13"
+extra-paths = ["src", "tests"]
 
 [tool.codespell]
 ignore-words-list = "discreet,"
-skip = "*.json,*.csv,tests/generate_data.py"
-# skip_files = [
-#     "tests/data/*.*",
-#     "tests/generate_data.py",
-# ]
+skip = "*.json,*.csv"
 
-[tool.check-manifest]
-ignore = [
-    ".editorconfig",
-    ".pre-commit-config.yaml",
-    "tox.ini",
-    "mypy.ini",
-    ".flake8",
-    "mx.ini",
+
+[tool.tox]
+min_version = "4.4.0"
+env_list = ["py313", "py314", "lint"]
+
+[tool.tox.gh.python]
+"3.13" = ["py313"]
+"3.14" = ["py314"]
+
+[tool.tox.env_run_base]
+description = "run the unit test suite"
+# uv-venv-runner, not uv-venv-lock-runner: the latter runs `uv sync` and wants a
+# uv.lock, which this repository deliberately does not carry (see CLAUDE.md).
+runner = "uv-venv-runner"
+dependency_groups = ["dev"]
+commands = [["pytest", { replace = "posargs", extend = true }]]
+
+[tool.tox.env.lint]
+description = "run the linters and the type checker"
+runner = "uv-venv-runner"
+dependency_groups = ["dev"]
+commands = [
+    ["ruff", "check", "src", "tests"],
+    ["ruff", "format", "--check", "src", "tests"],
+    ["ty", "check", "src"],
 ]

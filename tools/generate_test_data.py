@@ -1,14 +1,27 @@
-from faker import Faker
+"""Regenerate `tests/data/persons.csv`, the sample cohort for the integration tests.
+
+Not a test and not collected as one -- it writes a fixture, so it runs when somebody
+asks it to and never as a side effect of `pytest`. Needs the `dev` dependency group,
+which carries faker for this one script.
+
+    .venv/bin/python tools/generate_test_data.py
+"""
 
 import csv
 import pathlib
 import random
 
+from faker import Faker
 
-DATA_DIR = pathlib.Path(__file__).parent / "data"
+
+# The script lives in tools/ and the fixture lives in tests/data/, so the path goes up
+# one level. It used to be `__file__.parent / "data"`, which was right while the script
+# sat in tests/ and silently wrong the moment it moved.
+DATA_DIR = pathlib.Path(__file__).resolve().parent.parent / "tests" / "data"
 
 
 def generate_save_email(first_name, last_name, domain="campus.lmu.de"):
+    """Fold accents and umlauts out of a name so it can serve as a local part."""
     email = f"{first_name.lower()}.{last_name.lower()}@{domain}"
     email = (
         email.replace("ä", "ae")
@@ -45,8 +58,12 @@ def generate_save_email(first_name, last_name, domain="campus.lmu.de"):
 
 
 def generate_fake_person_data(locale):
+    """Invent one person: name, address-safe email, ESI and phone number."""
     fake = Faker(locale=locale)
-    fake.seed_instance(random.randint(1, 99999))
+    # Test data, not a secret: `random` is the right tool and `secrets` would be
+    # theatre. The linter's blanket warning about pseudo-random generators is noted
+    # and dismissed here rather than repo-wide.
+    fake.seed_instance(random.randint(1, 99999))  # noqa: S311
 
     first_name = fake.first_name()
     last_name = fake.last_name()
@@ -68,6 +85,7 @@ def generate_fake_person_data(locale):
 
 
 def main():
+    """Write a cohort spread across the locales below into tests/data/persons.csv."""
     locales = {
         "de_DE": 100,
         "de_AT": 20,
