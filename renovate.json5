@@ -1,0 +1,65 @@
+// Renovate configuration. JSON5 rather than JSON so the reasoning can live next to the
+// rules -- this file decides what arrives unasked in the pull request list, and a rule
+// nobody understands is a rule somebody switches off.
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+
+  extends: [
+    "config:recommended",
+    // Once a week, before 4 AM. Dependency updates are not news; a Monday morning
+    // batch is read, a stream through the week is dismissed.
+    "schedule:earlyMondays",
+    // .pre-commit-config.yaml pins ruff and pre-commit-hooks by revision. Without
+    // this, those two pins are the only ones in the repository nothing watches --
+    // and they decide what `prek` enforces before every commit.
+    ":enablePreCommit",
+  ],
+
+  timezone: "Europe/Berlin",
+
+  // No automerge anywhere: green CI proves the suite still passes, not that the
+  // update is one we want. See `ruff` below for a version bump that is green and
+  // still a decision.
+  packageRules: [
+    {
+      matchManagers: ["github-actions"],
+      groupName: "GitHub Actions",
+    },
+    {
+      matchManagers: ["pre-commit"],
+      groupName: "pre-commit hooks",
+    },
+    {
+      // The `dev` dependency group and the `docs` extra. None of it reaches a
+      // consumer of the library, so one pull request for the batch is proportionate.
+      matchManagers: ["pep621"],
+      matchDepTypes: ["project.optional-dependencies", "dependency-groups"],
+      groupName: "development dependencies",
+    },
+    {
+      // Out of that batch: the pin is `>=0.16,<0.17` on purpose, because a ruff minor
+      // release changes what the linter reports and reformats files that were
+      // formatted correctly yesterday. Its own pull request, describing a decision
+      // rather than a bump.
+      matchManagers: ["pep621"],
+      matchPackageNames: ["ruff"],
+      groupName: null,
+      commitMessageTopic: "ruff (rule and formatter changes expected)",
+    },
+    {
+      // Four runtime dependencies, each of which every consumer of this library
+      // inherits. One pull request each, so the discussion is about that library.
+      matchManagers: ["pep621"],
+      matchDepTypes: ["project.dependencies"],
+      groupName: null,
+    },
+    {
+      // httpx2 is the transport this package is written against, and its 2.x line is
+      // young. A minor bump can move behaviour the client relies on -- redirects,
+      // timeouts, the multipart encoder -- so it never travels in a batch.
+      matchManagers: ["pep621"],
+      matchPackageNames: ["httpx2"],
+      commitMessageTopic: "httpx2 (transport behaviour, read the changelog)",
+    },
+  ],
+}

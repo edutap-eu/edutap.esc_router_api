@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  # Nothing here is locked: there is no uv.lock and every requirement is a lower bound.
+  # A suite that passed last week can fail today with nothing changed in this repository.
+  schedule:
+    - cron: "17 5 * * 1"
+  # Callable, so the release workflow runs *these* checks rather than its own copy. A
+  # release gate that drifts from CI is a gate that passes what CI would have stopped --
+  # and it drifts silently, because nobody reads two files side by side.
+  workflow_call:
+  # On demand, so that `spec-drift` below can be asked the question without waiting for
+  # Monday. Without this trigger declared, its `if` could never be true.
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          # hatch-vcs reads the version from the git history. Without the full history
+          # the build has no tags to derive one from and falls back to 0.1.dev0.
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python }}
+      # The same Make targets a developer runs. See CONTRIBUTING.md.
+      - run: make test-local
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+      - run: make lint
+
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+      # `make docs` passes -W, so a broken cross-reference fails here rather than
+      # rendering as a dead link on the website.
+      - run: make docs
+
+  # The specification the models are checked against is a snapshot. This job fetches the
+  # live one and fails when it has moved, so a router change arrives as a red Monday
+  # build rather than as a production error weeks later. It needs the network and is
+  # allowed to fail without blocking a merge.
+  spec-drift:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.13"
+      - run: make refresh-spec
+      - name: Show what moved
+        run: git diff --exit-code -- tests/data/esc-router-v2.json
+      - run: make test-local

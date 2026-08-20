@@ -288,6 +288,27 @@
         },
         "type": "object"
       },
+      "CsvValidationError": {
+        "properties": {
+          "errorMessage": {
+            "type": "string"
+          },
+          "fieldName": {
+            "type": "string"
+          },
+          "params": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "rowNumber": {
+            "format": "int32",
+            "type": "integer"
+          }
+        },
+        "type": "object"
+      },
       "Link": {
         "properties": {
           "deprecation": {
@@ -860,6 +881,45 @@
         ]
       }
     },
+    "/api/v2/cards/csv-config": {
+      "get": {
+        "description": "Returns CSV import configuration",
+        "operationId": "getCsvConfig",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "format": "int32",
+                    "type": "integer"
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "CSV config retrieved"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "format": "int32",
+                    "type": "integer"
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          }
+        },
+        "tags": [
+          "V2/card"
+        ]
+      }
+    },
     "/api/v2/cards/generate-escn": {
       "get": {
         "description": "Generates valid ESCN identifiers for cards",
@@ -925,6 +985,102 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiErrorMessage"
+                }
+              }
+            },
+            "description": "Unexpected error"
+          }
+        },
+        "tags": [
+          "V2/card"
+        ]
+      }
+    },
+    "/api/v2/cards/validate-csv": {
+      "post": {
+        "description": "Validates a CSV file and returns per row validation errors",
+        "operationId": "validateCsv",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "operation",
+            "required": true,
+            "schema": {
+              "enum": [
+                "CREATE",
+                "UPDATE",
+                "DELETE"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "properties": {
+                  "file": {
+                    "format": "binary",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "file"
+                ],
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CsvValidationError"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Validation result returned"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CsvValidationError"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Bad request"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CsvValidationError"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CsvValidationError"
+                  },
+                  "type": "array"
                 }
               }
             },
