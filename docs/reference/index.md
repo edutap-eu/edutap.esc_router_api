@@ -9,4 +9,5 @@ client
 models
 exceptions
 utilities
+unspecified-behaviour
 ```
