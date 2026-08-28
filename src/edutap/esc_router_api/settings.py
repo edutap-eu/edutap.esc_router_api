@@ -19,10 +19,12 @@ from pydantic_settings import SettingsConfigDict
 
 __all__ = ["Settings"]
 
-#: The router's own deployments, keyed by ``ESC_ENVIRONMENT``. Production answers 403 to
-#: any address that is not whitelisted, so a misconfigured environment shows up as an
-#: authorisation failure rather than as a connection error -- worth knowing when reading
-#: a traceback.
+#: The router's own deployments, keyed by ``ESC_ENVIRONMENT``.
+#:
+#: A misconfigured environment shows up as a 403 rather than as a connection error --
+#: worth knowing when reading a traceback, because the natural reaction is to go looking
+#: for a bad API key. WHY it answers 403 is not established; see
+#: `docs/explanation/sandbox-and-production.md`.
 BASE_URLS: dict[str, str] = {
     "development": "https://sandbox.europeanstudentcard.eu/esc-rest/",
     "testing": "https://sandbox.europeanstudentcard.eu/esc-rest/",

@@ -105,7 +105,7 @@ html_last_updated_fmt = "%Y-%m-%d"
 # ---------------------------------------------------------------------------
 
 linkcheck_ignore = [
-    # The production router answers 403 to any address that is not whitelisted, so
+    # The production router answers 403 where the sandbox answers 200, so
     # linkcheck can only ever report a false failure here.
     r"https://router\.europeanstudentcard\.eu.*",
     # Hosts that exist only while a local mock runs.
