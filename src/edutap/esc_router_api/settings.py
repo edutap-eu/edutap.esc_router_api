@@ -38,11 +38,26 @@ class Settings(BaseSettings):
     https://pydantic.dev/docs/validation/latest/concepts/pydantic_settings/
     """
 
+    #: `secrets_dir` is what lets the API key arrive as a mounted file rather than an
+    #: environment variable. `docker service inspect` prints environment variables to
+    #: everyone allowed to run it, and an error tracker collects them out of frame
+    #: locals -- an API key is exactly the kind of value that must not travel that way.
+    #:
+    #: pydantic-settings HAS NO `_FILE` CONVENTION. It reads a secret file only where a
+    #: `secrets_dir` says to look, and the name it looks for carries the prefix:
+    #: `/run/secrets/ESC_API_KEY`, not `.../api_key`. A secret mounted under the bare
+    #: field name is silently ignored -- silently, which is the whole problem: nothing
+    #: distinguishes "the file was not read" from "no key was configured".
+    #:
+    #: A missing directory is harmless. pydantic-settings emits a `UserWarning` and
+    #: falls back to the environment, so a development machine without `/run/secrets`
+    #: is unaffected, and so are the integration tests.
     model_config = SettingsConfigDict(
         env_prefix="ESC_",
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
+        secrets_dir="/run/secrets",
         extra="ignore",
     )
 
